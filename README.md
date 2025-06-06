@@ -177,4 +177,4 @@ This project is currently in active development based on the Product Requirement
 
 ## License
 
-This project's license information is not currently specified. Please check with the project maintainers for licensing details.
+This project is licensed under the MIT License.
