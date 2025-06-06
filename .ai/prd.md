@@ -2,7 +2,7 @@
 
 ## 1. Przegląd produktu
 
-FlashAI to webowa aplikacja umożliwiająca użytkownikom szybkie tworzenie, przegląd i zarządzanie fiszkami edukacyjnymi. Główne funkcje obejmują generowanie fiszek przez AI na podstawie wprowadzonego tekstu, ręczne tworzenie i edycję fiszek, integrację z istniejącym algorytmem powtórek oraz prosty system kont użytkowników. Aplikacja jest hostowana w kontenerach Docker na DigitalOcean, z podstawowym pipeline CI/CD, a wszystkie akcje są logowane do celów pomiaru KPI.
+FlashAI to webowa aplikacja umożliwiająca użytkownikom szybkie tworzenie, przegląd i zarządzanie fiszkami edukacyjnymi. Główne funkcje obejmują generowanie fiszek przez AI na podstawie wprowadzonego tekstu, ręczne tworzenie i edycję fiszek, integrację z istniejącym algorytmem powtórek oraz prosty system kont użytkowników. Aplikacja jest hostowana na platformie Vercel, z podstawowym pipeline CI/CD, a wszystkie akcje są logowane do celów pomiaru KPI.
 
 ## 2. Problem użytkownika
 
