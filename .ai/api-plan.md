@@ -44,11 +44,6 @@
   - 429: Rate limit exceeded
   - 502: AI service error
 
-#### POST /api/generations/{generationId}/retry
-- Description: Retry AI generation for a session after an error
-- Headers: `Authorization: Bearer <token>`
-- Response: Same as `POST /api/generations`
-
 ### 2.3 Flashcards (Accepted and Manual)
 
 #### GET /api/flashcards
@@ -80,25 +75,6 @@
   - 404: Not found or belongs to another user
 
 #### POST /api/flashcards
-- Description: Create a new flashcard (manual or accept AI candidate)
-- Headers: `Authorization: Bearer <token>`
-- Request Body:
-  ```json
-  {
-    "front": "String (1–200 chars)",
-    "back": "String (1–500 chars)",
-    "source": "manual|ai-full|ai-edited",
-    "generationId": "UUID (required if source != manual)"
-  }
-  ```
-- Response (201):
-  ```json
-  { "id": "UUID", "front": "...", "back": "...", "source": "...", "createdAt": "..." }
-  ```
-- Errors:
-  - 400: Validation failed (lengths, missing generationId)
-
-#### POST /api/flashcards/bulk
 - Description: Create multiple flashcards in one request (bulk manual or accept AI candidates)
 - Headers: `Authorization: Bearer <token>`
 - Request Body:
@@ -176,17 +152,6 @@
 - Headers: `Authorization: Bearer <token>`
 - Query Parameters: `page`, `pageSize`
 - Response: paginated list of `{ id, model, errorCode, errorMessage, createdAt }`
-
-### 2.6 Repetition Integration (Optional)
-
-#### POST /api/repetitions/import
-- Description: Export accepted flashcards to spaced-repetition module
-- Headers: `Authorization: Bearer <token>`
-- Request Body:
-  ```json
-  { "flashcardIds": ["UUID", ...] }
-  ```
-- Response (200): `{ "importedCount": 10 }`
 
 ## 3. Authentication and Authorization
 
