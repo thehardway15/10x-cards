@@ -13,17 +13,20 @@ FlashAI to webowa aplikacja umożliwiająca użytkownikom szybkie tworzenie, prz
 ## 3. Wymagania funkcjonalne
 
 1. Generowanie fiszek przez AI
-   - Wejście: tekst plain-text o długości od 1000 do 10000 znaków.
-   - Wyjście: lista kandydatów na fiszki z polami „przód” (≤200 znaków) i „tył” (≤500 znaków).
-2. Przegląd kandydatów
+   - Wejście: tekst o długości od 1000 do 10000 znaków.
+   - Aplikacja wysyła tekst do modelu LLm za pośrednictwem API.
+   - Model LLM proponuje zestaw fiszek (pytania i odpowiedzi).
+   - Wyjście: lista kandydatów na fiszki z polami „przód” (≤200 znaków) i „tył” (≤500 znaków) z moliwością akceptacji, edycji lub odrzucenia.
+2. Ręczne tworzenie i zarządzanie fiszkami:
+   - Formularz do ręcznego tworzenia fiszek (przód i tył fiszki).
+   - Opcje edycji i usuwania istniejących fiszek.
+   - Ręczne tworzenie i wyświetlanie w ramach widoku listy "Moje fiszki"
+3. Przegląd kandydatów
    - Paginacja 20 pozycji na stronę.
    - Możliwość akceptacji, edycji lub odrzucenia każdego kandydata.
-3. Zapisywanie zaakceptowanych fiszek
+4. Zapisywanie zaakceptowanych fiszek
    - Tylko zaakceptowane fiszki są przechowywane w bazie.
    - Kontekst i dane tymczasowe są przechowywane wyłącznie w logach.
-4. Ręczne tworzenie, edycja i usuwanie fiszek
-   - Formularz dodawania nowej fiszki ze standardowymi polami.
-   - Możliwość edycji i usunięcia zapisanej fiszki.
 5. Autoryzacja i zarządzanie kontem
    - Rejestracja konta przez email i hasło (bez weryfikacji mailowej).
    - Logowanie i wylogowanie.
