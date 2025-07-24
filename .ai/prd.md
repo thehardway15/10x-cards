@@ -148,6 +148,17 @@ FlashAI to webowa aplikacja umożliwiająca użytkownikom szybkie tworzenie, prz
   1. Formularz z polami „przód” i „tył”.  
   2. Zapisanie fiszki w bazie i wyświetlenie na liście.
 
+- US-016: Bezpieczny dostęp i uwierzytelnianie
+  Opis: Jako użytkownik chcę mieć możliwość rejestracji i logowania się do systemu w sposób zapewniający bezpieczeństwo moich danych.
+  Kryteria akceptacji:
+  1. Logowanie i rejestracja odbywają się na dedykowanych stronach.
+  2. Logowanie wymaga podania adresu email i hasła.
+  3. Rejestracja wymaga podania adresu email, hasła i potwierdzenia hasła.
+  4. Użytkownik może logować się do systemu poprzez przycisk w prawym górnym rogu.
+  5. Użytkownik może się wylogować z systemu poprzez przycisk w prawym górnym rogu w głównym @Layout.astro.
+  6. Nie korzystamy z zewnętrznych serwisów logowania (np. Google, GitHub).
+  7. Użytkownik NIE MOŻE korzystać z generowania fiszek bez zalogowania.
+
 ## 6. Metryki sukcesu
 
 - ≥75% wygenerowanych przez AI fiszek zaakceptowanych przez użytkowników.  
