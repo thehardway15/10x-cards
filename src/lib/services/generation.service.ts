@@ -2,6 +2,9 @@ import type { CreateGenerationCommand, GenerationCandidateDto, GenerationDetailD
 import type { SupabaseClient } from '../../db/supabase.client';
 import { DEFAULT_USER_ID } from '../../db/supabase.client';
 import crypto from 'crypto';
+import { OpenRouterService } from './openrouter.service';
+import { openRouterFlashcardsArraySchema } from '../schemas/flashcard.schema';
+import { z } from 'zod';
 
 export interface GenerationResult {
   generation: GenerationDetailDto;
@@ -20,9 +23,22 @@ export class GenerationError extends Error {
 }
 
 export class GenerationService {
-  private readonly MODEL = 'gpt-4-1106-preview';
+  private readonly MODEL = 'openai/gpt-4o-mini';
+  private readonly openRouter: OpenRouterService;
 
-  constructor(private readonly supabase: SupabaseClient) {}
+  constructor(
+    private readonly supabase: SupabaseClient
+  ) {
+    const apiKey = import.meta.env.OPENROUTER_API_KEY;
+    if (!apiKey) {
+      throw new GenerationError(
+        'OpenRouter API key is not configured',
+        'CONFIG_ERROR'
+      );
+    }
+
+    this.openRouter = new OpenRouterService({ apiKey }, supabase);
+  }
 
   async createGeneration(command: CreateGenerationCommand, userId: string): Promise<GenerationResult> {
     try {
@@ -37,11 +53,11 @@ export class GenerationService {
       
       const sourceTextLength = sanitizedText.length;
 
-      // Mock generation data
+      // Create generation record
       const generationData = {
         id: crypto.randomUUID(),
         model: this.MODEL,
-        generated_count: 3,
+        generated_count: 0,
         accepted_unedited_count: 0,
         accepted_edited_count: 0,
         source_text_hash: sourceTextHash,
@@ -66,30 +82,69 @@ export class GenerationService {
         );
       }
 
-      // Mock candidates
-      const candidates: GenerationCandidateDto[] = [
-        {
-          candidateId: crypto.randomUUID(),
-          front: 'What is TypeScript?',
-          back: 'TypeScript is a strongly typed programming language that builds on JavaScript.'
+      // Generate flashcards using OpenRouter
+      const flashcards = await this.openRouter.sendMessage({
+        systemMessage: `You are a helpful AI assistant that creates flashcards from educational text. 
+Create 10 flashcards that capture the key concepts from the provided text.
+Each flashcard should have a clear question on the front and a concise answer on the back.
+Focus on the most important concepts and ensure the content is accurate.`,
+        userMessage: sanitizedText,
+        modelName: this.MODEL,
+        modelParams: {
+          temperature: 0.7,
+          max_tokens: 1000
         },
-        {
-          candidateId: crypto.randomUUID(),
-          front: 'What are TypeScript interfaces?',
-          back: 'Interfaces in TypeScript define contracts in your code and provide explicit names for type checking.'
+        responseFormat: {
+          type: 'json_schema',
+          json_schema: {
+            name: 'flashcards',
+            strict: true,
+            schema: {
+              type: 'object',
+              properties: {
+                flashcards: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      front: { type: 'string', description: 'Question or concept on the front of the flashcard' },
+                      back: { type: 'string', description: 'Answer or explanation on the back of the flashcard' }
+                    },
+                    required: ['front', 'back'],
+                    additionalProperties: false
+                  }
+                }
+              },
+              required: ['flashcards'],
+              additionalProperties: false
+            }
+          }
         },
-        {
-          candidateId: crypto.randomUUID(),
-          front: 'What is type inference in TypeScript?',
-          back: 'Type inference is TypeScript\'s ability to automatically determine types when they are not explicitly specified.'
-        }
-      ];
+        validationSchema: z.object({
+          flashcards: openRouterFlashcardsArraySchema
+        }),
+        sourceTextHash,
+        sourceTextLength
+      });
+
+      // Update generation count
+      await this.supabase
+        .from('generations')
+        .update({ generated_count: flashcards.flashcards.length })
+        .eq('id', generation.id);
+
+      // Map flashcards to candidates
+      const candidates: GenerationCandidateDto[] = flashcards.flashcards.map(card => ({
+        candidateId: crypto.randomUUID(),
+        front: card.front,
+        back: card.back
+      }));
 
       // Map generation to DTO
       const generationDto: GenerationDetailDto = {
         id: generation.id,
         model: generation.model,
-        generatedCount: generation.generated_count,
+        generatedCount: flashcards.flashcards.length,
         acceptedUneditedCount: generation.accepted_unedited_count,
         acceptedEditedCount: generation.accepted_edited_count,
         sourceTextHash: generation.source_text_hash,

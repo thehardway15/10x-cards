@@ -153,4 +153,54 @@ export interface ImportRepetitionsCommand {
 // Response after importing flashcards into repetition module
 export interface ImportRepetitionsResponseDto {
   importedCount: number;
+}
+
+// #### OpenRouter Types
+
+export interface OpenRouterMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
+export interface OpenRouterJsonSchema {
+  name: string;
+  strict: boolean;
+  schema: Record<string, unknown>;
+}
+
+export interface OpenRouterResponseFormat {
+  type: 'json_schema';
+  json_schema: OpenRouterJsonSchema;
+}
+
+export interface OpenRouterRequest {
+  messages: OpenRouterMessage[];
+  model: string;
+  response_format?: OpenRouterResponseFormat;
+  parameters?: {
+    temperature?: number;
+    max_tokens?: number;
+    [key: string]: unknown;
+  };
+}
+
+export interface OpenRouterResponse {
+  id: string;
+  model: string;
+  choices: Array<{
+    message: OpenRouterMessage;
+    finish_reason: string;
+  }>;
+  usage: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+}
+
+export interface OpenRouterServiceOptions {
+  apiKey: string;
+  endpoint?: string;
+  defaultModel?: string;
+  defaultParams?: Record<string, unknown>;
 } 
