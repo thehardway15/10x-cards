@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Toaster } from '@/components/ui/sonner';
 
 export function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -66,10 +65,34 @@ export function RegisterForm() {
     setIsLoading(true);
 
     try {
-      // Backend integration will be implemented later
-      toast.error('Registration functionality not implemented yet');
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+        credentials: 'include', // Important for cookies
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to register');
+      }
+
+      // Show success message
+      toast.success('Registration successful! Redirecting to login...');
+
+      // Wait a bit for the toast to be visible
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Redirect to login page
+      window.location.href = '/login';
     } catch (error) {
-      toast.error('An error occurred during registration');
+      toast.error(error instanceof Error ? error.message : 'An error occurred during registration');
     } finally {
       setIsLoading(false);
     }
@@ -84,7 +107,7 @@ export function RegisterForm() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <input
@@ -147,8 +170,6 @@ export function RegisterForm() {
           </a>
         </p>
       </form>
-
-      <Toaster position="bottom-right" />
     </div>
   );
 } 

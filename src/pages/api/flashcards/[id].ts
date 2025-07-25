@@ -1,131 +1,146 @@
 import type { APIRoute } from 'astro';
-import type { SupabaseClient } from '../../../db/supabase.client';
-import { DEFAULT_USER_ID } from '../../../db/supabase.client';
 import { FlashcardsService } from '../../../lib/services/flashcards.service';
 import { flashcardParamsSchema } from '../../../lib/schemas/flashcards.schemas';
-import { createErrorResponse, createSuccessResponse } from '../../../lib/utils/api.utils';
+import { updateFlashcardSchema } from '../../../lib/schemas/flashcard.schema';
 import { z } from 'zod';
-import { updateFlashcardSchema, flashcardIdSchema } from '../../../lib/schemas/flashcard.schema';
-import { ForbiddenError, NotFoundError, ValidationError } from '../../../lib/errors';
 
+// Prevent static generation
 export const prerender = false;
 
-interface Locals {
-  supabase: SupabaseClient;
-}
-
-interface RouteParams {
-  id?: string;
-}
-
-export const GET: APIRoute = async ({ params, locals }: { params: RouteParams, locals: Locals }) => {
+export const GET: APIRoute = async ({ params, locals }) => {
   try {
-    if (!locals.supabase) {
-      throw new Error('Supabase client not available');
-    }
-
-    // Validate and parse path parameters
+    // Validate flashcard ID
     const { id } = flashcardParamsSchema.parse(params);
 
-    // Get flashcard details
-    const flashcard = await FlashcardsService.getFlashcardById(
-      locals.supabase,
-      DEFAULT_USER_ID,
-      id
-    );
+    // Get user ID from session
+    const userId = locals.user?.id;
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized', code: 'AUTH_ERROR' }), 
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
 
-    return createSuccessResponse(flashcard);
+    // Get flashcard
+    const service = new FlashcardsService(locals.supabase);
+    const flashcard = await service.getFlashcard(userId, id);
+
+    if (!flashcard) {
+      return new Response(
+        JSON.stringify({ error: 'Flashcard not found' }), 
+        { status: 404, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    return new Response(JSON.stringify(flashcard), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (error) {
-    return createErrorResponse(error);
+    if (error instanceof z.ZodError) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid flashcard ID' }), 
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.error('Failed to get flashcard:', error);
+    return new Response(
+      JSON.stringify({ error: 'Failed to get flashcard' }), 
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 };
 
-const deleteFlashcardParamsSchema = z.object({ id: z.string().uuid() });
-
 export const DELETE: APIRoute = async ({ params, locals }) => {
   try {
-    // 1. Validate the ID parameter
-    const result = deleteFlashcardParamsSchema.safeParse(params);
-    if (!result.success) {
-      return new Response(JSON.stringify({ error: 'Invalid id' }), { 
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+    // Validate flashcard ID
+    const { id } = flashcardParamsSchema.parse(params);
+
+    // Get user ID from session
+    const userId = locals.user?.id;
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized', code: 'AUTH_ERROR' }), 
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
     }
 
-    // 2. Delete the flashcard using default user ID
-    const flashcardsService = new FlashcardsService(locals.supabase);
-    const deleted = await flashcardsService.deleteFlashcard(DEFAULT_USER_ID, result.data.id);
+    // Delete flashcard
+    const service = new FlashcardsService(locals.supabase);
+    const deleted = await service.deleteFlashcard(userId, id);
 
     if (!deleted) {
-      return new Response(JSON.stringify({ error: 'Not found' }), { 
-        status: 404,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return new Response(
+        JSON.stringify({ error: 'Flashcard not found' }), 
+        { status: 404, headers: { 'Content-Type': 'application/json' } }
+      );
     }
 
     return new Response(null, { status: 204 });
   } catch (error) {
-    console.error('Error deleting flashcard:', error);
-    return new Response(JSON.stringify({ error: 'Internal Server Error' }), { 
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    if (error instanceof z.ZodError) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid flashcard ID' }), 
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.error('Failed to delete flashcard:', error);
+    return new Response(
+      JSON.stringify({ error: 'Failed to delete flashcard' }), 
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 };
 
 export const PUT: APIRoute = async ({ params, request, locals }) => {
   try {
     // Validate flashcard ID
-    const flashcardId = await flashcardIdSchema.parseAsync(params.id).catch(() => {
-      throw new ValidationError('Invalid flashcard ID');
-    });
+    const { id } = flashcardParamsSchema.parse(params);
 
-    // Parse and validate request body
-    const body = await request.json().catch(() => {
-      throw new ValidationError('Invalid JSON payload');
-    });
-    
-    const command = await updateFlashcardSchema.parseAsync(body).catch((error) => {
-      throw new ValidationError(error.errors[0]?.message || 'Invalid request data');
-    });
-
-    // Update flashcard using default user ID
-    const flashcardService = new FlashcardsService(locals.supabase);
-    await flashcardService.updateFlashcard(DEFAULT_USER_ID, flashcardId, command);
-
-    return new Response(
-      JSON.stringify({ message: 'Flashcard updated successfully' }),
-      {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
-  } catch (error) {
-    if (error instanceof ValidationError) {
+    // Get user ID from session
+    const userId = locals.user?.id;
+    if (!userId) {
       return new Response(
-        JSON.stringify({ error: error.message }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Unauthorized', code: 'AUTH_ERROR' }), 
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
     }
-    
-    if (error instanceof NotFoundError) {
+
+    // Parse and validate request body
+    const body = await request.json();
+    const command = updateFlashcardSchema.parse(body);
+
+    // Update flashcard
+    const service = new FlashcardsService(locals.supabase);
+    const updated = await service.updateFlashcard(userId, id, command);
+
+    if (!updated) {
       return new Response(
-        JSON.stringify({ error: error.message }),
+        JSON.stringify({ error: 'Flashcard not found' }), 
         { status: 404, headers: { 'Content-Type': 'application/json' } }
       );
     }
-    
-    if (error instanceof ForbiddenError) {
+
+    return new Response(JSON.stringify(updated), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
       return new Response(
-        JSON.stringify({ error: error.message }),
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ 
+          error: 'Invalid request data',
+          details: error.errors 
+        }), 
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    console.error('Unexpected error while updating flashcard:', error);
+    console.error('Failed to update flashcard:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Failed to update flashcard' }), 
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }

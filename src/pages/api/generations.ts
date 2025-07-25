@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import type { APIRoute } from 'astro';
 import type { CreateGenerationCommand, CreateGenerationResponseDto } from '../../types';
-import { DEFAULT_USER_ID } from '../../db/supabase.client';
 import { GenerationService, GenerationError } from '../../lib/services/generation.service';
 
 // Prevent static generation
@@ -20,11 +19,20 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const body = await request.json();
     const validatedData = createGenerationSchema.parse(body) satisfies CreateGenerationCommand;
 
+    // Get user ID from session
+    const userId = locals.user?.id;
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized', code: 'AUTH_ERROR' }), 
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Initialize generation service
     const generationService = new GenerationService(locals.supabase);
     
-    // Call generation service with default user ID
-    const result = await generationService.createGeneration(validatedData, DEFAULT_USER_ID);
+    // Call generation service with user ID
+    const result = await generationService.createGeneration(validatedData, userId);
     
     return new Response(
       JSON.stringify(result), 

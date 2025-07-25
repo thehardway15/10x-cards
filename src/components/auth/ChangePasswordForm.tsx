@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Toaster } from '@/components/ui/sonner';
 
 export function ChangePasswordForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -66,10 +65,33 @@ export function ChangePasswordForm() {
     setIsLoading(true);
 
     try {
-      // Backend integration will be implemented later
-      toast.error('Password change functionality not implemented yet');
+      const response = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          currentPassword: formData.currentPassword,
+          newPassword: formData.newPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to change password');
+      }
+
+      toast.success('Password changed successfully');
+      
+      // Reset form
+      setFormData({
+        currentPassword: '',
+        newPassword: '',
+        confirmNewPassword: '',
+      });
     } catch (error) {
-      toast.error('An error occurred while changing the password');
+      toast.error(error instanceof Error ? error.message : 'An error occurred while changing the password');
     } finally {
       setIsLoading(false);
     }
@@ -84,7 +106,7 @@ export function ChangePasswordForm() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
           <Label htmlFor="currentPassword">Current Password</Label>
           <input
@@ -141,8 +163,6 @@ export function ChangePasswordForm() {
           {isLoading ? 'Changing password...' : 'Change password'}
         </Button>
       </form>
-
-      <Toaster position="bottom-right" />
     </div>
   );
 } 

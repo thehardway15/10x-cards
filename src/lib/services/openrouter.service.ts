@@ -1,8 +1,7 @@
 import { z } from 'zod';
 import { ConfigurationError, OpenRouterAuthError, OpenRouterRateLimitError, OpenRouterServerError, OpenRouterTimeoutError, ResponseValidationError } from '../errors';
-import type { OpenRouterServiceOptions, OpenRouterRequest, OpenRouterResponse, OpenRouterMessage, OpenRouterResponseFormat } from '../../types';
+import type { OpenRouterServiceOptions, OpenRouterRequest, OpenRouterResponse, OpenRouterMessage, OpenRouterResponseFormat, OpenRouterServiceMessageOptions } from '../../types';
 import type { SupabaseClient } from '../../db/supabase.client';
-import { DEFAULT_USER_ID } from '../../db/supabase.client';
 import fetch from 'cross-fetch';
 
 const DEFAULT_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
@@ -231,7 +230,7 @@ export class OpenRouterService {
     }
   }
 
-  private async logError(error: Error, model: string, sourceTextHash: string, sourceTextLength: number): Promise<void> {
+  private async logError(error: Error, model: string, sourceTextHash: string, sourceTextLength: number, userId: string): Promise<void> {
     try {
       let errorCode = 'UNKNOWN_ERROR';
       if (error instanceof OpenRouterAuthError) errorCode = 'AUTH_ERROR';
@@ -248,7 +247,7 @@ export class OpenRouterService {
           error_message: error.message,
           source_text_hash: sourceTextHash,
           source_text_length: sourceTextLength,
-          user_id: DEFAULT_USER_ID,
+          user_id: userId,
           error_details: error instanceof ResponseValidationError ? error.details : undefined
         });
     } catch (e) {
@@ -256,23 +255,7 @@ export class OpenRouterService {
     }
   }
 
-  async sendMessage<T>(options: {
-    systemMessage: string;
-    userMessage: string;
-    modelName?: string;
-    modelParams?: { temperature?: number; max_tokens?: number; [key: string]: unknown };
-    responseFormat?: {
-      type: 'json_schema';
-      json_schema: {
-        name: string;
-        strict: boolean;
-        schema: Record<string, unknown>;
-      };
-    };
-    validationSchema: z.ZodSchema<T>;
-    sourceTextHash: string;
-    sourceTextLength: number;
-  }): Promise<T> {
+  async sendMessage<T>(options: OpenRouterServiceMessageOptions<T>): Promise<T> {
     try {
       const payload = this.buildPayload(options);
       const response = await this.sendHttpRequest(payload);
@@ -282,7 +265,8 @@ export class OpenRouterService {
         error as Error,
         options.modelName ?? this.defaultModel,
         options.sourceTextHash,
-        options.sourceTextLength
+        options.sourceTextLength,
+        options.userId
       );
       throw error;
     }

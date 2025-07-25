@@ -4,7 +4,6 @@ import { SourceTextInput } from './SourceTextInput';
 import { CandidateList } from './CandidateList';
 import { EditFlashcardModal } from './EditFlashcardModal';
 import { ConfirmActionDialog } from './ConfirmActionDialog';
-import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
 
 export function GenerateView() {
@@ -134,8 +133,6 @@ export function GenerateView() {
         onOpenChange={setIsConfirmDialogOpen}
         onConfirm={onConfirmReject}
       />
-
-      <Toaster position="bottom-right" />
     </div>
   );
 } 

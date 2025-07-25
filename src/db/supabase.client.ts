@@ -42,5 +42,3 @@ export const createSupabaseServerInstance = (context: {
 };
 
 export type SupabaseClient = Awaited<ReturnType<typeof createSupabaseServerInstance>>;
-
-export const DEFAULT_USER_ID = '910f8bc4-7ec5-458d-8d1c-d548a61ccee5';

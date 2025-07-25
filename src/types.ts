@@ -1,4 +1,5 @@
 import type { Tables, Enums } from './db/database.types';
+import { z } from 'zod';
 
 // Flashcard Source enumeration
 export type FlashcardSource = Enums<'flashcard_source'>;
@@ -156,6 +157,25 @@ export interface ImportRepetitionsResponseDto {
 }
 
 // #### OpenRouter Types
+
+export interface OpenRouterServiceMessageOptions<T> {
+  systemMessage: string;
+  userMessage: string;
+  modelName?: string;
+  modelParams?: { temperature?: number; max_tokens?: number; [key: string]: unknown };
+  responseFormat?: {
+    type: 'json_schema';
+    json_schema: {
+      name: string;
+      strict: boolean;
+      schema: Record<string, unknown>;
+    };
+  };
+  validationSchema: z.ZodSchema<T>;
+  sourceTextHash: string;
+  sourceTextLength: number;
+  userId: string;
+}
 
 export interface OpenRouterMessage {
   role: 'system' | 'user' | 'assistant';

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Toaster } from '@/components/ui/sonner';
 
 interface User {
   email: string;
@@ -102,7 +101,6 @@ export function TopBar() {
           )}
         </div>
       </div>
-      <Toaster position="bottom-right" />
     </header>
   );
 } 

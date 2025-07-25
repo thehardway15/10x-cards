@@ -2,9 +2,19 @@
 import Layout from '@/layouts/Layout.astro';
 import { ChangePasswordForm } from '@/components/auth/ChangePasswordForm';
 import { TopBar } from '@/components/navigation/TopBar';
+import { createSupabaseServerInstance } from '../db/supabase.client';
 
-// This page requires authentication
-// Redirect logic will be implemented later when we add backend integration
+// Get user data
+const supabase = createSupabaseServerInstance({
+  cookies: Astro.cookies,
+  headers: Astro.request.headers,
+});
+
+const { data: { user } } = await supabase.auth.getUser();
+
+if (!user) {
+  return Astro.redirect('/login');
+}
 ---
 
 <Layout title="Account Settings - FlashAI">

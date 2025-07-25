@@ -1,6 +1,5 @@
 import type { CreateGenerationCommand, GenerationCandidateDto, GenerationDetailDto } from '../../types';
 import type { SupabaseClient } from '../../db/supabase.client';
-import { DEFAULT_USER_ID } from '../../db/supabase.client';
 import crypto from 'crypto';
 import { OpenRouterService } from './openrouter.service';
 import { openRouterFlashcardsArraySchema } from '../schemas/flashcard.schema';
@@ -11,11 +10,17 @@ export interface GenerationResult {
   candidates: GenerationCandidateDto[];
 }
 
+export interface GenerationErrorDetails {
+  sourceTextHash?: string;
+  sourceTextLength?: number;
+  [key: string]: unknown;
+}
+
 export class GenerationError extends Error {
   constructor(
     message: string,
     public code: string,
-    public details?: unknown
+    public details?: GenerationErrorDetails
   ) {
     super(message);
     this.name = 'GenerationError';
@@ -78,7 +83,7 @@ export class GenerationService {
         throw new GenerationError(
           'Failed to create generation record',
           'DB_ERROR',
-          insertError
+          { error: insertError }
         );
       }
 
@@ -124,7 +129,8 @@ Focus on the most important concepts and ensure the content is accurate.`,
           flashcards: openRouterFlashcardsArraySchema
         }),
         sourceTextHash,
-        sourceTextLength
+        sourceTextLength,
+        userId
       });
 
       // Update generation count
@@ -158,16 +164,16 @@ Focus on the most important concepts and ensure the content is accurate.`,
       };
     } catch (error) {
       if (error instanceof GenerationError) {
-        await this.logError(error, this.MODEL);
+        await this.logError(error, this.MODEL, userId);
         throw error;
       }
 
       const wrappedError = new GenerationError(
         'Unexpected error during generation',
         'INTERNAL_ERROR',
-        error
+        { error }
       );
-      await this.logError(wrappedError, this.MODEL);
+      await this.logError(wrappedError, this.MODEL, userId);
       throw wrappedError;
     }
   }
@@ -186,7 +192,7 @@ Focus on the most important concepts and ensure the content is accurate.`,
       .replace(/[\x00-\x09\x0B-\x1F\x7F-\x9F]/g, '');
   }
 
-  private async logError(error: GenerationError, model: string): Promise<void> {
+  private async logError(error: GenerationError, model: string, userId: string): Promise<void> {
     try {
       await this.supabase
         .from('generation_error_logs')
@@ -194,9 +200,9 @@ Focus on the most important concepts and ensure the content is accurate.`,
           model,
           error_code: error.code,
           error_message: error.message,
-          source_text_hash: '',  // Required by schema
-          source_text_length: 0, // Required by schema
-          user_id: DEFAULT_USER_ID
+          source_text_hash: error.details?.sourceTextHash || '',
+          source_text_length: error.details?.sourceTextLength || 0,
+          user_id: userId
         });
     } catch (e) {
       console.error('Failed to log generation error:', e);

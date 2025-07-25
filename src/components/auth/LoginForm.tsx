@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Toaster } from '@/components/ui/sonner';
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -52,7 +51,7 @@ export function LoginForm() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <input
@@ -93,8 +92,6 @@ export function LoginForm() {
           </a>
         </p>
       </form>
-
-      <Toaster position="bottom-right" />
     </div>
   );
 } 
