@@ -1,0 +1,15 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { RegisterForm } from '@/components/auth/RegisterForm';
+import { TopBar } from '@/components/navigation/TopBar';
+
+// Redirect if user is already logged in
+// This will be implemented later when we add backend integration
+---
+
+<Layout title="Create account - FlashAI">
+  <TopBar client:load />
+  <main class="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center min-h-[calc(100vh-4rem)] py-8">
+    <RegisterForm client:load />
+  </main>
+</Layout> 

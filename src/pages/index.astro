@@ -1,11 +1,25 @@
 ---
-import Welcome from "../components/Welcome.astro";
-import Layout from "../layouts/Layout.astro";
+import Layout from '@/layouts/Layout.astro';
+import { LoginForm } from '@/components/auth/LoginForm';
+import { TopBar } from '@/components/navigation/TopBar';
 
-const redirectUrl = '/generate';
-return Astro.redirect(redirectUrl);
+// Redirect to /generate if user is already logged in
+// This will be implemented later when we add backend integration
 ---
 
-<Layout>
-  <Welcome />
+<Layout title="FlashAI - AI-Powered Flashcards">
+  <TopBar client:load />
+  <main class="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center min-h-[calc(100vh-4rem)] py-8">
+    <div class="w-full">
+      <div class="text-center mb-8">
+        <h1 class="text-4xl font-bold tracking-tight mb-4">
+          Welcome to FlashAI
+        </h1>
+        <p class="text-xl text-muted-foreground">
+          Create effective flashcards with the power of AI
+        </p>
+      </div>
+      <LoginForm client:load />
+    </div>
+  </main>
 </Layout>
