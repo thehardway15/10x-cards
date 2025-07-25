@@ -16,10 +16,28 @@ export function LoginForm() {
     setIsLoading(true);
 
     try {
-      // Backend integration will be implemented later
-      toast.error('Login functionality not implemented yet');
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+        credentials: 'include', // Important for cookies
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to login');
+      }
+
+      // Wait a bit for cookies to be set
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Redirect to generate page on success
+      window.location.href = '/generate';
     } catch (error) {
-      toast.error('An error occurred during login');
+      toast.error(error instanceof Error ? error.message : 'An error occurred during login');
     } finally {
       setIsLoading(false);
     }

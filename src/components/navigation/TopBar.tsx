@@ -1,9 +1,55 @@
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { Toaster } from '@/components/ui/sonner';
+
+interface User {
+  email: string;
+}
 
 export function TopBar() {
-  // User data will be implemented later with backend integration
-  const isAuthenticated = false;
-  const userEmail = '';
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    // Check authentication status on mount
+    fetch('/api/auth/me', {
+      credentials: 'include',
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.user) {
+          setIsAuthenticated(true);
+          setUserEmail(data.user.email);
+        }
+      })
+      .catch(() => {
+        setIsAuthenticated(false);
+        setUserEmail('');
+      });
+  }, []);
+
+  const handleLogout = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to logout');
+      }
+
+      // Redirect to login page
+      window.location.href = '/login';
+    } catch (error) {
+      toast.error('Failed to sign out');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -38,11 +84,10 @@ export function TopBar() {
               <span className="text-sm text-muted-foreground">{userEmail}</span>
               <Button
                 variant="outline"
-                onClick={() => {
-                  // Logout functionality will be implemented later
-                }}
+                onClick={handleLogout}
+                disabled={isLoading}
               >
-                Sign out
+                {isLoading ? 'Signing out...' : 'Sign out'}
               </Button>
             </div>
           ) : (
@@ -57,6 +102,7 @@ export function TopBar() {
           )}
         </div>
       </div>
+      <Toaster position="bottom-right" />
     </header>
   );
 } 
