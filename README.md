@@ -48,6 +48,12 @@ FlashAI addresses the time-consuming and monotonous process of manually creating
   - Cost-effective model selection
   - Financial limit controls
 
+### Testing
+- **Vitest** - Fast test runner for unit and integration tests
+- **React Testing Library** - Component testing without implementation details
+- **Playwright** - End-to-end testing across multiple browsers
+- **Mock Service Worker (MSW)** - API request mocking for tests
+
 ### Development & Deployment
 - **GitHub Actions** - CI/CD pipelines
 - **Docker** - Containerization for deployment
@@ -121,6 +127,8 @@ FlashAI addresses the time-consuming and monotonous process of manually creating
 | `npm run lint` | Run ESLint to check code quality |
 | `npm run lint:fix` | Run ESLint and automatically fix issues |
 | `npm run format` | Format code using Prettier |
+| `npm run test` | Run unit and component tests with Vitest |
+| `npm run test:e2e` | Run end-to-end tests with Playwright |
 
 ## Project Scope
 
@@ -145,6 +153,7 @@ FlashAI addresses the time-consuming and monotonous process of manually creating
 - Error handling and retry logic for AI failures
 - Event logging for KPI measurement
 - Spaced repetition algorithm integration
+- Comprehensive test coverage (unit, integration, E2E)
 
 ### Explicit Limitations
 ❌ **Out of Scope**
@@ -167,6 +176,7 @@ This project is currently in active development based on the Product Requirement
 - User-friendly interfaces and experiences
 - Scalable backend infrastructure
 - Measurable KPI tracking
+- Thorough test coverage
 
 ### Development Priorities
 1. Core AI generation workflow
