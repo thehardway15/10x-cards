@@ -20,6 +20,6 @@ test.describe('Home page', () => {
   test('welcome message contains expected text', async ({ page }) => {
     const homePage = new HomePage(page);
     await homePage.goto();
-    await homePage.expectWelcomeMessageContains('Welcome');
+    await homePage.expectWelcomeMessageContains('Create effective flashcards with the power of AI');
   });
 }); 

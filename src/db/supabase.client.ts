@@ -20,7 +20,7 @@ export const createSupabaseServerInstance = (context: {
     import.meta.env.SUPABASE_KEY,
     {
       auth: {
-        autoRefreshToken: true,
+        autoRefreshToken: false, // Disable auto refresh to prevent cookie modifications after response
         persistSession: true,
         detectSessionInUrl: false,
       },
@@ -29,10 +29,21 @@ export const createSupabaseServerInstance = (context: {
           return context.cookies.get(name)?.value;
         },
         set(name, value, options) {
-          context.cookies.set(name, value, options);
+          try {
+            context.cookies.set(name, value, options);
+          } catch (error) {
+            // Silently handle attempts to set cookies after response has been sent
+            // This prevents errors when Supabase tries to update cookies after response
+            console.log(`Cookie set operation failed for ${name}, response may have already been sent`);
+          }
         },
         remove(name, options) {
-          context.cookies.delete(name, options);
+          try {
+            context.cookies.delete(name, options);
+          } catch (error) {
+            // Silently handle attempts to delete cookies after response has been sent
+            console.log(`Cookie delete operation failed for ${name}, response may have already been sent`);
+          }
         },
       },
     },

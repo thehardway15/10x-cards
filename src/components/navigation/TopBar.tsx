@@ -1,9 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { apiClient, getUser, clearAuth } from '@/lib/api.utils';
 
 interface User {
   email: string;
+}
+
+interface MeResponse {
+  user?: {
+    email: string;
+  };
 }
 
 export function TopBar() {
@@ -12,34 +19,28 @@ export function TopBar() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Check authentication status on mount
-    fetch('/api/auth/me', {
-      credentials: 'include',
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.user) {
-          setIsAuthenticated(true);
-          setUserEmail(data.user.email);
-        }
-      })
-      .catch(() => {
-        setIsAuthenticated(false);
-        setUserEmail('');
-      });
+    // Check authentication status on mount using localStorage only
+    // to avoid redirection loops with the /api/auth/me endpoint
+    const user = getUser();
+    const token = localStorage.getItem('auth_token');
+    
+    if (user && token) {
+      setIsAuthenticated(true);
+      setUserEmail(user.email);
+    } else {
+      setIsAuthenticated(false);
+      setUserEmail('');
+      clearAuth();
+    }
   }, []);
 
   const handleLogout = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to logout');
-      }
+      await apiClient.post('/api/auth/logout', {});
+      
+      // Clear local auth data
+      clearAuth();
 
       // Redirect to login page
       window.location.href = '/login';
@@ -70,6 +71,7 @@ export function TopBar() {
               <a
                 href="/account"
                 className="transition-colors hover:text-foreground/80"
+                data-testid="profile-link"
               >
                 Account
               </a>
@@ -79,7 +81,7 @@ export function TopBar() {
 
         <div className="flex flex-1 items-center justify-end space-x-4">
           {isAuthenticated ? (
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4" data-testid="user-menu">
               <span className="text-sm text-muted-foreground">{userEmail}</span>
               <Button
                 variant="outline"
@@ -103,4 +105,4 @@ export function TopBar() {
       </div>
     </header>
   );
-} 
+}

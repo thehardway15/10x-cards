@@ -1,49 +1,39 @@
 import type { APIRoute } from 'astro';
 import { createSupabaseServerInstance } from '../../../db/supabase.client';
 import { z } from 'zod';
+import { createToken } from '../../../lib/auth/jwt';
 
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
-  newPassword: z.string()
-    .min(8, 'Password must be at least 8 characters long')
-    .regex(/[A-Za-z]/, 'Password must contain at least one letter')
-    .regex(/[0-9]/, 'Password must contain at least one number'),
+  newPassword: z.string().min(8, 'New password must be at least 8 characters long'),
 });
 
-export const POST: APIRoute = async ({ request, cookies }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   try {
     const body = await request.json();
     const { currentPassword, newPassword } = changePasswordSchema.parse(body);
 
-    const supabase = createSupabaseServerInstance({ 
-      cookies, 
-      headers: request.headers 
-    });
-
-    // First verify the current password by trying to sign in
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: (await supabase.auth.getUser()).data.user?.email || '',
-      password: currentPassword,
-    });
-
-    if (signInError) {
+    const user = locals.user;
+    if (!user) {
       return new Response(
-        JSON.stringify({ error: 'Current password is incorrect' }),
+        JSON.stringify({ error: 'Unauthorized' }),
         { 
-          status: 400,
+          status: 401,
           headers: { 'Content-Type': 'application/json' }
         }
       );
     }
 
-    // If current password is correct, update to the new password
-    const { error: updateError } = await supabase.auth.updateUser({
+    const supabase = createSupabaseServerInstance({ headers: request.headers });
+
+    // Update password
+    const { error } = await supabase.auth.updateUser({
       password: newPassword,
     });
 
-    if (updateError) {
+    if (error) {
       return new Response(
-        JSON.stringify({ error: updateError.message }),
+        JSON.stringify({ error: error.message }),
         { 
           status: 400,
           headers: { 'Content-Type': 'application/json' }
@@ -51,8 +41,14 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       );
     }
 
+    // Generate new token
+    const token = await createToken(user);
+
     return new Response(
-      JSON.stringify({ message: 'Password updated successfully' }),
+      JSON.stringify({ 
+        message: 'Password changed successfully',
+        token
+      }),
       { 
         status: 200,
         headers: { 'Content-Type': 'application/json' }
@@ -77,4 +73,4 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       }
     );
   }
-}; 
+};

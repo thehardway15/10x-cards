@@ -1,0 +1,8 @@
+.env
+.env.test
+.env.production
+node_modules/
+dist
+.vscode
+.husky
+.github

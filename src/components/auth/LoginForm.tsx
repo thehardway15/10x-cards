@@ -21,7 +21,6 @@ export function LoginForm() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-        credentials: 'include', // Important for cookies
       });
 
       const data = await response.json();
@@ -30,8 +29,11 @@ export function LoginForm() {
         throw new Error(data.error || 'Failed to login');
       }
 
-      // Wait a bit for cookies to be set
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Store JWT token in localStorage
+      localStorage.setItem('auth_token', data.token);
+
+      // Store user data in localStorage for convenience
+      localStorage.setItem('user', JSON.stringify(data.user));
 
       // Redirect to generate page on success
       window.location.href = '/generate';
@@ -61,6 +63,7 @@ export function LoginForm() {
             className="w-full px-3 py-2 border rounded-md"
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            data-testid="login-email"
             required
           />
         </div>
@@ -73,6 +76,7 @@ export function LoginForm() {
             className="w-full px-3 py-2 border rounded-md"
             value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            data-testid="login-password"
             required
           />
         </div>
@@ -81,6 +85,7 @@ export function LoginForm() {
           type="submit"
           className="w-full"
           disabled={isLoading}
+          data-testid="login-button"
         >
           {isLoading ? 'Signing in...' : 'Sign in'}
         </Button>
@@ -94,4 +99,4 @@ export function LoginForm() {
       </form>
     </div>
   );
-} 
+}

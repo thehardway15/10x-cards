@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { createSupabaseServerInstance } from '../../../db/supabase.client';
+import { createToken } from '../../../lib/auth/jwt';
 import { z } from 'zod';
 
 const loginSchema = z.object({
@@ -12,7 +13,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const body = await request.json();
     const { email, password } = loginSchema.parse(body);
 
-    const supabase = createSupabaseServerInstance({ cookies, headers: request.headers });
+    const supabase = createSupabaseServerInstance({ 
+      headers: request.headers,
+      cookies,
+    });
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -29,8 +33,18 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       );
     }
 
+    // Generate JWT token
+    const token = await createToken(data.user);
+
     return new Response(
-      JSON.stringify({ user: data.user }),
+      JSON.stringify({ 
+        token,
+        user: {
+          id: data.user.id,
+          email: data.user.email,
+          role: data.user.role || 'user',
+        }
+      }),
       { 
         status: 200,
         headers: { 'Content-Type': 'application/json' }
@@ -55,4 +69,4 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       }
     );
   }
-}; 
+};

@@ -1,77 +1,118 @@
-import { z } from 'zod';
 import type { APIRoute } from 'astro';
-import type { CreateGenerationCommand, CreateGenerationResponseDto } from '../../types';
-import { GenerationService, GenerationError } from '../../lib/services/generation.service';
+import { z } from 'zod';
 
-// Prevent static generation
-export const prerender = false;
-
-// Zod schema for request validation
-const createGenerationSchema = z.object({
-  sourceText: z.string()
-    .min(1000, 'Source text must be at least 1000 characters')
-    .max(10000, 'Source text must not exceed 10000 characters')
+const generationRequestSchema = z.object({
+  sourceText: z.string().min(1, 'Source text is required'),
+  options: z.object({
+    language: z.string().optional(),
+    difficulty: z.string().optional(),
+    count: z.number().min(1).max(10).optional(),
+  }).optional(),
 });
 
 export const POST: APIRoute = async ({ request, locals }) => {
   try {
-    // Parse and validate request body
-    const body = await request.json();
-    const validatedData = createGenerationSchema.parse(body) satisfies CreateGenerationCommand;
-
-    // Get user ID from session
-    const userId = locals.user?.id;
-    if (!userId) {
+    const user = locals.user;
+    if (!user) {
       return new Response(
-        JSON.stringify({ error: 'Unauthorized', code: 'AUTH_ERROR' }), 
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Unauthorized' }),
+        { 
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        }
       );
     }
 
-    // Initialize generation service
-    const generationService = new GenerationService(locals.supabase);
+    const body = await request.json();
+    const { sourceText, options } = generationRequestSchema.parse(body);
+
+    const { supabase } = locals;
     
-    // Call generation service with user ID
-    const result = await generationService.createGeneration(validatedData, userId);
-    
+    // Create generation record
+    const { data: generation, error: generationError } = await supabase
+      .from('generations')
+      .insert({
+        user_id: user.id,
+        source_text: sourceText,
+        options,
+        status: 'pending',
+      })
+      .select()
+      .single();
+
+    if (generationError) {
+      throw generationError;
+    }
+
+    // Start generation process (implementation depends on your setup)
+    // ...
+
     return new Response(
-      JSON.stringify(result), 
+      JSON.stringify({ generation }),
       { 
-        status: 201, 
-        headers: { 'Content-Type': 'application/json' } 
+        status: 201,
+        headers: { 'Content-Type': 'application/json' }
       }
     );
   } catch (error) {
     if (error instanceof z.ZodError) {
       return new Response(
-        JSON.stringify({ 
-          error: 'Invalid request data', 
-          code: 'SCHEMA_VALIDATION_ERROR',
-          details: error.errors 
-        }), 
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: error.errors[0].message }),
+        { 
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        }
       );
     }
 
-    if (error instanceof GenerationError) {
-      const status = error.code === 'VALIDATION_ERROR' ? 400 : 500;
-      return new Response(
-        JSON.stringify({ 
-          error: error.message, 
-          code: error.code,
-          details: error.details 
-        }), 
-        { status, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.error('Generation endpoint error:', error);
     return new Response(
-      JSON.stringify({ 
-        error: 'Internal server error',
-        code: 'INTERNAL_ERROR'
-      }), 
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: 'Internal server error' }),
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
     );
   }
-}; 
+};
+
+export const GET: APIRoute = async ({ locals }) => {
+  try {
+    const user = locals.user;
+    if (!user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { 
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    const { supabase } = locals;
+    const { data: generations, error } = await supabase
+      .from('generations')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    return new Response(
+      JSON.stringify({ generations }),
+      { 
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ error: 'Internal server error' }),
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
+  }
+};

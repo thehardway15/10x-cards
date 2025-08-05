@@ -94,6 +94,7 @@ export function GenerateView() {
   return (
     <div className="space-y-8">
       <SourceTextInput
+        data-testid="source-text-input"
         sourceText={sourceText}
         onSourceTextChange={handleSourceTextChange}
         onSubmit={handleGenerate}

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { apiClient } from '@/lib/api.utils';
 
 export function ChangePasswordForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -65,22 +66,10 @@ export function ChangePasswordForm() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/change-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          currentPassword: formData.currentPassword,
-          newPassword: formData.newPassword,
-        }),
+      await apiClient.post('/api/auth/change-password', {
+        currentPassword: formData.currentPassword,
+        newPassword: formData.newPassword,
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to change password');
-      }
 
       toast.success('Password changed successfully');
       
@@ -117,6 +106,7 @@ export function ChangePasswordForm() {
             onChange={(e) =>
               setFormData({ ...formData, currentPassword: e.target.value })
             }
+            data-testid="current-password-input"
             required
           />
         </div>
@@ -131,6 +121,7 @@ export function ChangePasswordForm() {
             }`}
             value={formData.newPassword}
             onChange={handleNewPasswordChange}
+            data-testid="new-password-input"
             required
           />
           {errors.newPassword && (
@@ -148,6 +139,7 @@ export function ChangePasswordForm() {
             }`}
             value={formData.confirmNewPassword}
             onChange={handleConfirmNewPasswordChange}
+            data-testid="confirm-new-password-input"
             required
           />
           {errors.confirmNewPassword && (
@@ -159,10 +151,11 @@ export function ChangePasswordForm() {
           type="submit"
           className="w-full"
           disabled={isLoading || !!errors.newPassword || !!errors.confirmNewPassword}
+          data-testid="change-password-button"
         >
           {isLoading ? 'Changing password...' : 'Change password'}
         </Button>
       </form>
     </div>
   );
-} 
+}

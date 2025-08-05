@@ -8,7 +8,7 @@ export class HomePage {
 
   constructor(page: Page) {
     this.page = page;
-    this.title = page.locator('h1');
+    this.title = page.getByRole('heading', { name: 'Welcome to FlashAI' });
     this.welcomeMessage = page.locator('[data-testid="welcome-message"]');
   }
 

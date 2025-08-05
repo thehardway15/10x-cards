@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { apiClient } from '@/lib/api.utils';
 
 export function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -65,23 +66,10 @@ export function RegisterForm() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-        credentials: 'include', // Important for cookies
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to register');
-      }
+      await apiClient.post('/api/auth/register', {
+        email: formData.email,
+        password: formData.password,
+      }, { skipAuth: true });
 
       // Show success message
       toast.success('Registration successful! Redirecting to login...');
@@ -117,6 +105,7 @@ export function RegisterForm() {
             className="w-full px-3 py-2 border rounded-md"
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            data-testid="register-email"
             required
           />
         </div>
@@ -131,6 +120,7 @@ export function RegisterForm() {
             }`}
             value={formData.password}
             onChange={handlePasswordChange}
+            data-testid="register-password"
             required
           />
           {errors.password && (
@@ -148,6 +138,7 @@ export function RegisterForm() {
             }`}
             value={formData.confirmPassword}
             onChange={handleConfirmPasswordChange}
+            data-testid="register-confirm-password"
             required
           />
           {errors.confirmPassword && (
@@ -159,6 +150,7 @@ export function RegisterForm() {
           type="submit"
           className="w-full"
           disabled={isLoading || !!errors.password || !!errors.confirmPassword}
+          data-testid="register-button"
         >
           {isLoading ? 'Creating account...' : 'Create account'}
         </Button>
@@ -172,4 +164,4 @@ export function RegisterForm() {
       </form>
     </div>
   );
-} 
+}

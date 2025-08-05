@@ -1,6 +1,8 @@
 import { defineMiddleware } from 'astro:middleware';
 import { createSupabaseServerInstance } from '../db/supabase.client';
-import type { Session, User } from '@supabase/supabase-js';
+import type { User } from '@supabase/supabase-js';
+import { extractTokenFromHeader, verifyToken } from '../lib/auth/jwt';
+import { JWTError, TokenExpiredError, InvalidTokenError, MissingTokenError } from '../lib/errors';
 
 // Public paths that don't require authentication
 const PUBLIC_PATHS = ['/', '/login', '/register', '/api/auth/login', '/api/auth/register'];
@@ -10,31 +12,39 @@ const PROTECTED_API_PATHS = ['/api/auth/change-password', '/api/auth/me', '/api/
 
 type Locals = {
   supabase: ReturnType<typeof createSupabaseServerInstance>;
-  session: Session | null;
   user: User | null;
 };
 
-export const onRequest = defineMiddleware(async ({ cookies, request, redirect, url, locals }, next) => {
-  // Create Supabase instance for this request
+function handleAuthError(error: unknown, isApiRoute: boolean) {
+  const errorResponse = {
+    error: error instanceof JWTError ? error.message : 'Unauthorized',
+    code: error instanceof JWTError ? error.code : 'UNAUTHORIZED',
+  };
+
+  if (isApiRoute) {
+    return new Response(JSON.stringify(errorResponse), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  // For non-API routes, redirect to login
+  return new Response(null, {
+    status: 302,
+    headers: { Location: '/login' }
+  });
+}
+
+export const onRequest = defineMiddleware(async ({ request, cookies, redirect, url, locals }, next) => {
+  // Create Supabase instance for this request (still needed for some operations)
   const supabase = createSupabaseServerInstance({
-    cookies,
     headers: request.headers,
+    cookies,
   });
 
-  // Add Supabase instance and auth data to locals
+  // Add Supabase instance to locals
   (locals as Locals).supabase = supabase;
-  (locals as Locals).session = null;
   (locals as Locals).user = null;
-
-  // Get session first
-  const { data: { session } } = await supabase.auth.getSession();
-  (locals as Locals).session = session;
-
-  // Then get user if we have a session
-  const { data: { user } } = session 
-    ? await supabase.auth.getUser()
-    : { data: { user: null } };
-  (locals as Locals).user = user;
 
   // Check if the route requires authentication
   const isPublicRoute = PUBLIC_PATHS.includes(url.pathname);
@@ -42,22 +52,44 @@ export const onRequest = defineMiddleware(async ({ cookies, request, redirect, u
   const isApiRoute = url.pathname.startsWith('/api/');
   const requiresAuth = !isPublicRoute;
 
-  // Handle authentication for protected routes
-  if (requiresAuth && !session) {
-    if (isApiRoute || isProtectedApiRoute) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
+  // For routes requiring auth, verify JWT token
+  if (requiresAuth) {
+    try {
+      const authHeader = request.headers.get('authorization');
+      if (!authHeader) {
+        // Only throw error for API routes or protected routes
+        // For other routes, we'll let them through and the page will handle redirection
+        if (isApiRoute || isProtectedApiRoute) {
+          throw new MissingTokenError();
+        } else {
+          // For non-API routes without auth header, skip auth check
+          // The page itself will handle redirecting unauthenticated users
+          return next();
+        }
+      }
+
+      const token = extractTokenFromHeader(authHeader);
+      const payload = await verifyToken(token).catch((error: Error) => {
+        if (error.message.includes('expired')) {
+          throw new TokenExpiredError();
+        }
+        throw new InvalidTokenError(error.message);
       });
+
+      // Set user data from JWT payload
+      (locals as Locals).user = {
+        id: payload.sub,
+        email: payload.email,
+        role: payload.role,
+      } as User;
+    } catch (error) {
+      return handleAuthError(error, isApiRoute || isProtectedApiRoute);
     }
-    return redirect('/login');
   }
 
-  // If user is logged in and tries to access login/register pages, redirect to /generate
-  if (session && (url.pathname === '/login' || url.pathname === '/register')) {
-    return redirect('/generate');
-  }
+  // We'll handle client-side redirections instead of server-side to avoid loops
+  // Client-side code will check localStorage for auth_token
 
   const response = await next();
   return response;
-}); 
+});

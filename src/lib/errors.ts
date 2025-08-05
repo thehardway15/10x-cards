@@ -1,62 +1,24 @@
-export class NotFoundError extends Error {
-  constructor(message: string) {
+export class JWTError extends Error {
+  constructor(message: string, public code: string) {
     super(message);
-    this.name = 'NotFoundError';
+    this.name = 'JWTError';
   }
 }
 
-export class ForbiddenError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'ForbiddenError';
+export class TokenExpiredError extends JWTError {
+  constructor() {
+    super('Token has expired', 'TOKEN_EXPIRED');
   }
 }
 
-export class ValidationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'ValidationError';
+export class InvalidTokenError extends JWTError {
+  constructor(message = 'Invalid token') {
+    super(message, 'INVALID_TOKEN');
   }
 }
 
-export class ConfigurationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'ConfigurationError';
+export class MissingTokenError extends JWTError {
+  constructor() {
+    super('No authorization token provided', 'MISSING_TOKEN');
   }
 }
-
-export class OpenRouterAuthError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'OpenRouterAuthError';
-  }
-}
-
-export class OpenRouterRateLimitError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'OpenRouterRateLimitError';
-  }
-}
-
-export class OpenRouterServerError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'OpenRouterServerError';
-  }
-}
-
-export class OpenRouterTimeoutError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'OpenRouterTimeoutError';
-  }
-}
-
-export class ResponseValidationError extends Error {
-  constructor(message: string, public details: unknown) {
-    super(message);
-    this.name = 'ResponseValidationError';
-  }
-} 
