@@ -86,7 +86,7 @@ export function EditFlashcardModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-w-full overflow-auto">
         <DialogHeader>
           <DialogTitle>Edit Flashcard</DialogTitle>
         </DialogHeader>
@@ -100,7 +100,7 @@ export function EditFlashcardModal({
               value={front}
               onChange={handleFrontChange}
               placeholder="Enter the front side text"
-              className={frontError ? 'border-destructive' : ''}
+              className={frontError ? 'border-destructive break-words' : 'break-words'}
             />
             {frontError && (
               <p className="text-sm text-destructive">{frontError}</p>
@@ -115,7 +115,7 @@ export function EditFlashcardModal({
               value={back}
               onChange={handleBackChange}
               placeholder="Enter the back side text"
-              className={backError ? 'border-destructive' : ''}
+              className={backError ? 'border-destructive break-words' : 'break-words'}
             />
             {backError && (
               <p className="text-sm text-destructive">{backError}</p>

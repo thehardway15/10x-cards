@@ -23,6 +23,7 @@ export function SourceTextInput({
     <div className="space-y-4">
       <div className="relative">
         <Textarea
+          data-testid="source-text-input"
           value={sourceText}
           onChange={(e) => onSourceTextChange(e.target.value)}
           placeholder="Paste your text here (1,000-10,000 characters)"

@@ -21,7 +21,7 @@ export function CandidateListItem({
   const isProcessing = isSaving || isDeleting;
 
   return (
-    <Card className="relative h-full">
+    <Card className="relative h-full" data-testid={`candidate-item-${candidate.candidateId}`}>
       <CardContent className="pt-6">
         <div className="space-y-4">
           <div>
