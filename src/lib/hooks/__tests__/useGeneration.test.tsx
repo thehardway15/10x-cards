@@ -42,7 +42,6 @@ describe('useGeneration Hook', () => {
     expect(result.current.candidates).toEqual([]);
     expect(result.current.currentPage).toBe(1);
     expect(result.current.error).toBeNull();
-    expect(result.current.isValidSourceText).toBe(false);
   });
 
   it('updates sourceText when handleSourceTextChange is called', () => {
@@ -55,32 +54,10 @@ describe('useGeneration Hook', () => {
     expect(result.current.sourceText).toBe('New source text');
   });
 
-  it('validates sourceText length correctly', () => {
-    const { result } = renderHook(() => useGeneration());
-    
-    // Too short
-    act(() => {
-      result.current.handleSourceTextChange('short');
-    });
-    expect(result.current.isValidSourceText).toBe(false);
-    
-    // Valid length
-    act(() => {
-      result.current.handleSourceTextChange('a'.repeat(1000));
-    });
-    expect(result.current.isValidSourceText).toBe(true);
-    
-    // Too long
-    act(() => {
-      result.current.handleSourceTextChange('a'.repeat(10001));
-    });
-    expect(result.current.isValidSourceText).toBe(false);
-  });
-
   it('fetches generation data when handleGenerate is called', async () => {
     const { result } = renderHook(() => useGeneration());
     
-    // Set valid source text
+    // Set source text
     act(() => {
       result.current.handleSourceTextChange('a'.repeat(1000));
     });
@@ -119,7 +96,7 @@ describe('useGeneration Hook', () => {
     
     const { result } = renderHook(() => useGeneration());
     
-    // Set valid source text
+    // Set source text
     act(() => {
       result.current.handleSourceTextChange('a'.repeat(1000));
     });

@@ -29,51 +29,60 @@ function generateJwt(user: typeof testUser) {
   );
 }
 
-// Mock candidate data
-export const mockCandidates = [
-  {
-    candidateId: 'mock-id-1',
-    front: 'What is the capital of France?',
-    back: 'Paris is the capital of France.',
-    source: 'ai-full',
-    status: 'idle',
-  },
-  {
-    candidateId: 'mock-id-2',
-    front: 'What is the largest planet in our solar system?',
-    back: 'Jupiter is the largest planet in our solar system.',
-    source: 'ai-full',
-    status: 'idle',
-  },
-  {
-    candidateId: 'mock-id-3',
-    front: 'Who wrote "Romeo and Juliet"?',
-    back: 'William Shakespeare wrote "Romeo and Juliet".',
-    source: 'ai-full',
-    status: 'idle',
-  },
-];
-
-export const testData = {
-  createdFlashcardIds: new Set<string>(),
-};
+// Mock candidate data - unique for each test
+function generateMockCandidates(testId: string) {
+  return [
+    {
+      candidateId: `mock-id-1-${testId}`,
+      front: 'What is the capital of France?',
+      back: 'Paris is the capital of France.',
+      source: 'ai-full',
+      status: 'idle',
+    },
+    {
+      candidateId: `mock-id-2-${testId}`,
+      front: 'What is the largest planet in our solar system?',
+      back: 'Jupiter is the largest planet in our solar system.',
+      source: 'ai-full',
+      status: 'idle',
+    },
+    {
+      candidateId: `mock-id-3-${testId}`,
+      front: 'Who wrote "Romeo and Juliet"?',
+      back: 'William Shakespeare wrote "Romeo and Juliet".',
+      source: 'ai-full',
+      status: 'idle',
+    },
+  ];
+}
 
 export const test = base.extend({
   page: async ({ page, browser }, use) => {
+    // Generate unique test ID for this test run
+    const testId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const createdFlashcardIds = new Set<string>();
+    
     // --- AUTORYZACJA JWT ---
     const token = generateJwt(testUser);
     await page.goto('/'); // Musi być na stronie, by mieć dostęp do localStorage
-    await page.evaluate(([token, user]) => {
+    await page.evaluate((args) => {
+      const [token, user] = args as [string, typeof testUser];
       localStorage.setItem('auth_token', token);
       localStorage.setItem('user', JSON.stringify(user));
     }, [token, testUser]);
 
     // --- MOCKOWANIE API ---
     await page.route('**/api/generations', async (route) => {
+      const mockCandidates = generateMockCandidates(testId);
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
+          generation: {
+            id: `generation-${testId}`,
+            sourceText: 'Test source text',
+            createdAt: new Date().toISOString(),
+          },
           candidates: mockCandidates,
           totalCount: mockCandidates.length,
         }),
@@ -83,8 +92,8 @@ export const test = base.extend({
     await page.route('**/api/flashcards', async (route) => {
       const method = route.request().method();
       if (method === 'POST') {
-        const id = `test-flashcard-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-        testData.createdFlashcardIds.add(id);
+        const id = `test-flashcard-${testId}-${Math.random().toString(36).substring(2, 9)}`;
+        createdFlashcardIds.add(id);
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
@@ -102,8 +111,8 @@ export const test = base.extend({
       if (method === 'DELETE') {
         const url = route.request().url();
         const id = url.split('/').pop() || '';
-        if (testData.createdFlashcardIds.has(id)) {
-          testData.createdFlashcardIds.delete(id);
+        if (createdFlashcardIds.has(id)) {
+          createdFlashcardIds.delete(id);
         }
         await route.fulfill({
           status: 200,
@@ -116,15 +125,16 @@ export const test = base.extend({
     await use(page);
 
     // --- CLEANUP ---
-    if (testData.createdFlashcardIds.size > 0) {
+    if (createdFlashcardIds.size > 0) {
       const cleanupContext = await browser.newContext();
       const cleanupPage = await cleanupContext.newPage();
       await cleanupPage.goto('/');
-      await cleanupPage.evaluate(([token, user]) => {
+      await cleanupPage.evaluate((args) => {
+        const [token, user] = args as [string, typeof testUser];
         localStorage.setItem('auth_token', token);
         localStorage.setItem('user', JSON.stringify(user));
       }, [token, testUser]);
-      for (const id of testData.createdFlashcardIds) {
+      for (const id of createdFlashcardIds) {
         try {
           await cleanupPage.request.delete(`/api/flashcards/${id}`);
         } catch (error) {
@@ -132,7 +142,6 @@ export const test = base.extend({
           console.error(`Failed to delete test flashcard ${id}: ${error}`);
         }
       }
-      testData.createdFlashcardIds.clear();
       await cleanupContext.close();
     }
   },

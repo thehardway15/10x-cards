@@ -68,7 +68,7 @@ describe('EditFlashcardModal Component', () => {
     expect(frontTextarea).toHaveValue('New Front Text');
   });
 
-  it('validates empty front side and shows error', async () => {
+  it('validates empty front side and shows error on submit', async () => {
     const { user } = render(<EditFlashcardModal {...defaultProps} />);
     
     const frontTextarea = screen.getByLabelText(/Front Side/i);
@@ -80,7 +80,7 @@ describe('EditFlashcardModal Component', () => {
     expect(screen.getByText('Front side cannot be empty')).toBeInTheDocument();
   });
 
-  it('validates empty back side and shows error', async () => {
+  it('validates empty back side and shows error on submit', async () => {
     const { user } = render(<EditFlashcardModal {...defaultProps} />);
     
     const backTextarea = screen.getByLabelText(/Back Side/i);
@@ -92,7 +92,7 @@ describe('EditFlashcardModal Component', () => {
     expect(screen.getByText('Back side cannot be empty')).toBeInTheDocument();
   });
 
-  it('validates front side length and shows error when too long', async () => {
+  it('validates front side length and shows error when too long on submit', async () => {
     const { user } = render(<EditFlashcardModal {...defaultProps} />);
     
     const frontTextarea = screen.getByLabelText(/Front Side/i);
@@ -105,7 +105,7 @@ describe('EditFlashcardModal Component', () => {
     expect(screen.getByText('Front side cannot exceed 200 characters')).toBeInTheDocument();
   });
 
-  it('validates back side length and shows error when too long', async () => {
+  it('validates back side length and shows error when too long on submit', async () => {
     const { user } = render(<EditFlashcardModal {...defaultProps} />);
     
     const backTextarea = screen.getByLabelText(/Back Side/i);

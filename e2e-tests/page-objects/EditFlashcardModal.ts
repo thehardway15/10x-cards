@@ -8,7 +8,8 @@ export class EditFlashcardModal {
   }
 
   async isVisible() {
-    return await this.page.getByRole('dialog').isVisible();
+    await this.page.getByRole('dialog').waitFor({ state: 'visible', timeout: 5000 });
+    return true;
   }
 
   async getFrontText() {

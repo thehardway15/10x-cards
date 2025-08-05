@@ -14,22 +14,42 @@ export class GenerationPage {
   async enterSourceText(text: string) {
     await this.page.waitForSelector('[data-testid="source-text-input"]', { timeout: 10000 });
     const textarea = this.page.locator('[data-testid="source-text-input"]');
-    await textarea.click(); // Upewnij się, że pole jest aktywne
-    await textarea.fill(''); // Wyczyść pole
-    await textarea.type(text); // Wpisz tekst znak po znaku (symuluje użytkownika)
+    
+    // Clear the field first
+    await textarea.click();
+    await this.page.waitForTimeout(500);
+    await textarea.fill('');
+    
+    // Use fill() for better performance with long text
+    await textarea.fill(text);
+    
+    // Wait a bit longer for React Hook Form to process the change
+    await this.page.waitForTimeout(3000);
   }
 
   async clickGenerateButton() {
-    await this.page.getByRole('button', { name: 'Generate Flashcards' }).click();
+    const generateButton = this.page.getByTestId('generate-button');
+    
+    // Czekaj aż przycisk będzie widoczny
+    await generateButton.waitFor({ state: 'visible', timeout: 10000 });
+    
+    // Czekaj aż przycisk nie będzie wyłączony
+    await this.page.waitForFunction(() => {
+      const button = document.querySelector('[data-testid="generate-button"]');
+      return button && !button.hasAttribute('disabled');
+    }, { timeout: 15000 });
+    
+    await generateButton.click();
   }
 
   async getCharacterCount() {
-    const countText = await this.page.locator('.text-muted-foreground').textContent();
-    return countText ? parseInt(countText.split('/')[0].trim()) : 0;
+    const countElement = this.page.locator('.absolute.bottom-2.right-2.text-sm.text-muted-foreground');
+    const countText = await countElement.textContent();
+    return countText ? parseInt(countText.split('/')[0].trim().replace(',', '')) : 0;
   }
 
   async getFlashcardCandidateCount() {
-    await this.page.waitForSelector('[data-testid^="candidate-item-"]', { timeout: 5000 });
+    await this.page.waitForSelector('[data-testid^="candidate-item-"]', { timeout: 15000 });
     return await this.page.locator('[data-testid^="candidate-item-"]').count();
   }
 

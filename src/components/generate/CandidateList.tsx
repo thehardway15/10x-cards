@@ -1,8 +1,7 @@
 import { CandidateListItem } from './CandidateListItem';
+import { GenerationActions } from './GenerationActions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Pagination } from '@/components/ui/pagination';
-import { Button } from '@/components/ui/button';
-import { Check } from 'lucide-react';
 import type { GenerationCandidateViewModel } from '@/lib/hooks/useGeneration';
 
 interface CandidateListProps {
@@ -16,6 +15,7 @@ interface CandidateListProps {
   onBulkAccept: (candidateIds: string[]) => void;
   onEdit: (candidateId: string) => void;
   onReject: (candidateId: string) => void;
+  isProcessing?: boolean;
 }
 
 export function CandidateList({
@@ -29,6 +29,7 @@ export function CandidateList({
   onBulkAccept,
   onEdit,
   onReject,
+  isProcessing = false,
 }: CandidateListProps) {
   if (isLoading) {
     return (
@@ -52,27 +53,14 @@ export function CandidateList({
     );
   }
 
-  const handleBulkAccept = () => {
-    const availableCandidateIds = candidates
-      .filter(c => c.status === 'idle')
-      .map(c => c.candidateId);
-    onBulkAccept(availableCandidateIds);
-  };
-
-  const hasAvailableCandidates = candidates.some(c => c.status === 'idle');
-
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
-        <Button
-          onClick={handleBulkAccept}
-          disabled={!hasAvailableCandidates}
-          className="gap-2"
-        >
-          <Check className="h-4 w-4" />
-          Accept All ({candidates.filter(c => c.status === 'idle').length})
-        </Button>
-      </div>
+      <GenerationActions
+        candidates={candidates}
+        onBulkAccept={onBulkAccept}
+        isProcessing={isProcessing}
+      />
+      
       <div className="space-y-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {candidates.map((candidate) => (
           <CandidateListItem
@@ -84,6 +72,7 @@ export function CandidateList({
           />
         ))}
       </div>
+      
       {totalItems > pageSize && (
         <div className="flex justify-center">
           <Pagination

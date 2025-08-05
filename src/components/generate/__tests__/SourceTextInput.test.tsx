@@ -4,39 +4,32 @@ import { SourceTextInput } from '../SourceTextInput';
 
 describe('SourceTextInput Component', () => {
   const defaultProps = {
-    sourceText: '',
-    onSourceTextChange: vi.fn(),
     onSubmit: vi.fn(),
     isLoading: false,
-    charCount: 0,
-    isValid: false,
   };
 
   it('renders correctly with default props', () => {
     render(<SourceTextInput {...defaultProps} />);
     expect(screen.getByPlaceholderText(/paste your text here/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /generate flashcards/i })).toBeInTheDocument();
-    expect(screen.getByText(/text must be at least 1,000 characters/i)).toBeInTheDocument();
   });
 
-  it('displays character count correctly', () => {
-    render(<SourceTextInput {...defaultProps} charCount={500} />);
-    expect(screen.getByText('500 / 10,000')).toBeInTheDocument();
+  it('displays character count correctly', async () => {
+    const { user } = render(<SourceTextInput {...defaultProps} />);
+    
+    const textarea = screen.getByPlaceholderText(/paste your text here/i);
+    await user.type(textarea, 'Hello world');
+    
+    expect(screen.getByText('11 / 10,000')).toBeInTheDocument();
   });
 
-  it('shows appropriate validation message based on character count', () => {
-    // Text too short
-    render(<SourceTextInput {...defaultProps} charCount={500} />);
-    expect(screen.getByText(/text must be at least 1,000 characters/i)).toBeInTheDocument();
-  });
-
-  it('shows message when text is too long', () => {
-    render(<SourceTextInput {...defaultProps} charCount={11000} />);
-    expect(screen.getByText(/text must not exceed 10,000 characters/i)).toBeInTheDocument();
-  });
-  
-  it('shows no validation message when text length is valid', () => {
-    render(<SourceTextInput {...defaultProps} charCount={5000} />);
+  it('shows no validation message when text length is valid', async () => {
+    const { user } = render(<SourceTextInput {...defaultProps} />);
+    
+    const textarea = screen.getByPlaceholderText(/paste your text here/i);
+    const validText = 'a'.repeat(1000);
+    await user.type(textarea, validText);
+    
     expect(screen.queryByText(/text must be at least/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/text must not exceed/i)).not.toBeInTheDocument();
   });
@@ -46,19 +39,29 @@ describe('SourceTextInput Component', () => {
     expect(screen.getByPlaceholderText(/paste your text here/i)).toBeDisabled();
   });
 
-  it('disables generate button when text is invalid', () => {
-    render(<SourceTextInput {...defaultProps} isValid={false} isLoading={false} />);
+  it('disables generate button when text is invalid', async () => {
+    const { user } = render(<SourceTextInput {...defaultProps} />);
+    
+    const textarea = screen.getByPlaceholderText(/paste your text here/i);
+    await user.type(textarea, 'Short');
+    
     expect(screen.getByRole('button', { name: /generate flashcards/i })).toBeDisabled();
   });
   
   it('disables generate button when loading', () => {
-    render(<SourceTextInput {...defaultProps} isValid={true} isLoading={true} />);
+    render(<SourceTextInput {...defaultProps} isLoading={true} />);
     expect(screen.getByRole('button', { name: /generate flashcards/i })).toBeDisabled();
   });
 
-  it('enables generate button when text is valid and not loading', () => {
-    render(<SourceTextInput {...defaultProps} isValid={true} isLoading={false} />);
-    expect(screen.getByRole('button', { name: /generate flashcards/i })).not.toBeDisabled();
+  it('enables generate button when text is valid and not loading', async () => {
+    const { user } = render(<SourceTextInput {...defaultProps} />);
+    
+    const textarea = screen.getByPlaceholderText(/paste your text here/i);
+    const validText = 'a'.repeat(1000);
+    await user.type(textarea, validText);
+    
+    const button = screen.getByRole('button', { name: /generate flashcards/i });
+    expect(button).not.toBeDisabled();
   });
 
   it('shows loading indicator when isLoading is true', () => {
@@ -68,27 +71,34 @@ describe('SourceTextInput Component', () => {
     expect(loadingIndicator).toBeInTheDocument();
   });
 
-  it('calls onSourceTextChange when text is entered', async () => {
-    const onChange = vi.fn();
+  it('calls onSubmit when form is submitted with valid text', async () => {
+    const onSubmit = vi.fn();
     const { user } = render(
-      <SourceTextInput {...defaultProps} onSourceTextChange={onChange} />
+      <SourceTextInput {...defaultProps} onSubmit={onSubmit} />
     );
     
     const textarea = screen.getByPlaceholderText(/paste your text here/i);
-    await user.type(textarea, 'Hello');
+    const validText = 'a'.repeat(1000);
+    await user.type(textarea, validText);
     
-    expect(onChange).toHaveBeenCalledTimes(5); // Once for each character
+    const submitButton = screen.getByRole('button', { name: /generate flashcards/i });
+    await user.click(submitButton);
+    
+    expect(onSubmit).toHaveBeenCalledWith(validText);
   });
 
-  it('calls onSubmit when generate button is clicked', async () => {
+  it('does not call onSubmit when form is submitted with invalid text', async () => {
     const onSubmit = vi.fn();
     const { user } = render(
-      <SourceTextInput {...defaultProps} onSubmit={onSubmit} isValid={true} />
+      <SourceTextInput {...defaultProps} onSubmit={onSubmit} />
     );
     
-    const button = screen.getByRole('button', { name: /generate flashcards/i });
-    await user.click(button);
+    const textarea = screen.getByPlaceholderText(/paste your text here/i);
+    await user.type(textarea, 'Short');
     
-    expect(onSubmit).toHaveBeenCalledTimes(1);
+    const submitButton = screen.getByRole('button', { name: /generate flashcards/i });
+    await user.click(submitButton);
+    
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 }); 

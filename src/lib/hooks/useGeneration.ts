@@ -47,18 +47,11 @@ export function useGeneration() {
     return state.candidates.slice(start, end);
   }, [state.candidates, state.pagination]);
 
-  const isValidSourceText = useMemo(() => {
-    const length = state.sourceText.length;
-    return length >= 1000 && length <= 10000;
-  }, [state.sourceText]);
-
   const handleSourceTextChange = (text: string) => {
     setState(prev => ({ ...prev, sourceText: text }));
   };
 
   const handleGenerate = async () => {
-    if (!isValidSourceText) return;
-
     setState(prev => ({ ...prev, status: 'loading', error: null }));
 
     try {
@@ -171,7 +164,6 @@ export function useGeneration() {
     totalCandidates: state.candidates.length,
     currentPage: state.pagination.currentPage,
     pageSize: state.pagination.pageSize,
-    isValidSourceText,
     handleSourceTextChange,
     handleGenerate,
     handleAccept,

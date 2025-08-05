@@ -6,10 +6,10 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env.test') });
 
 export default defineConfig({
   testDir: './e2e-tests',
-  fullyParallel: true, // Leverage parallel execution
+  fullyParallel: false, // Disable parallel execution to avoid conflicts
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1, // Always use 1 worker to avoid conflicts
   reporter: [
     ['html'],
     ['list']

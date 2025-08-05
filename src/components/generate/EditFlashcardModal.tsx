@@ -1,4 +1,6 @@
-import { useState, useEffect, type ChangeEvent } from 'react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -9,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { flashcardSchema, type FlashcardFormData } from '@/lib/hooks/useFlashcardValidation';
 import type { GenerationCandidateViewModel } from '@/lib/hooks/useGeneration';
 
 interface EditFlashcardModalProps {
@@ -24,112 +27,88 @@ export function EditFlashcardModal({
   candidate,
   onSave,
 }: EditFlashcardModalProps) {
-  const [front, setFront] = useState('');
-  const [back, setBack] = useState('');
-  const [frontError, setFrontError] = useState('');
-  const [backError, setBackError] = useState('');
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    watch
+  } = useForm<FlashcardFormData>({
+    resolver: zodResolver(flashcardSchema),
+    defaultValues: { front: '', back: '' }
+  });
+
+  const frontValue = watch('front');
+  const backValue = watch('back');
 
   useEffect(() => {
     if (candidate) {
-      setFront(candidate.front);
-      setBack(candidate.back);
-      setFrontError('');
-      setBackError('');
+      reset({ front: candidate.front, back: candidate.back });
     }
-  }, [candidate]);
+  }, [candidate, reset]);
 
-  const validateFields = () => {
-    let isValid = true;
+  const onSubmit = (data: FlashcardFormData) => {
+    if (!candidate) return;
     
-    if (front.length === 0) {
-      setFrontError('Front side cannot be empty');
-      isValid = false;
-    } else if (front.length > 200) {
-      setFrontError('Front side cannot exceed 200 characters');
-      isValid = false;
-    } else {
-      setFrontError('');
-    }
-
-    if (back.length === 0) {
-      setBackError('Back side cannot be empty');
-      isValid = false;
-    } else if (back.length > 500) {
-      setBackError('Back side cannot exceed 500 characters');
-      isValid = false;
-    } else {
-      setBackError('');
-    }
-
-    return isValid;
-  };
-
-  const handleSave = () => {
-    if (!candidate || !validateFields()) return;
-
     onSave({
       ...candidate,
-      front,
-      back,
+      ...data,
       source: 'ai-edited',
     });
     onOpenChange(false);
   };
 
-  const handleFrontChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    setFront(e.target.value);
-  };
-
-  const handleBackChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    setBack(e.target.value);
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-w-full overflow-auto">
+      <DialogContent className="sm:max-w-[600px] max-w-full max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Edit Flashcard</DialogTitle>
         </DialogHeader>
-        <div className="space-y-6 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="front">
-              Front Side <span className="text-muted-foreground text-sm">({front.length}/200)</span>
-            </Label>
-            <Textarea
-              id="front"
-              value={front}
-              onChange={handleFrontChange}
-              placeholder="Enter the front side text"
-              className={frontError ? 'border-destructive break-words' : 'break-words'}
-            />
-            {frontError && (
-              <p className="text-sm text-destructive">{frontError}</p>
-            )}
+        
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col flex-1 min-h-0">
+          <div className="flex-1 overflow-y-auto space-y-6 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="front">
+                Front Side <span className="text-muted-foreground text-sm">({frontValue.length}/200)</span>
+              </Label>
+              <Textarea
+                id="front"
+                {...register('front')}
+                placeholder="Enter the front side text"
+                className={`${errors.front ? 'border-destructive' : ''} break-words resize-none`}
+                rows={4}
+              />
+              {errors.front && (
+                <p className="text-sm text-destructive">{errors.front.message}</p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="back">
+                Back Side <span className="text-muted-foreground text-sm">({backValue.length}/500)</span>
+              </Label>
+              <Textarea
+                id="back"
+                {...register('back')}
+                placeholder="Enter the back side text"
+                className={`${errors.back ? 'border-destructive' : ''} break-words resize-none`}
+                rows={6}
+              />
+              {errors.back && (
+                <p className="text-sm text-destructive">{errors.back.message}</p>
+              )}
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="back">
-              Back Side <span className="text-muted-foreground text-sm">({back.length}/500)</span>
-            </Label>
-            <Textarea
-              id="back"
-              value={back}
-              onChange={handleBackChange}
-              placeholder="Enter the back side text"
-              className={backError ? 'border-destructive break-words' : 'break-words'}
-            />
-            {backError && (
-              <p className="text-sm text-destructive">{backError}</p>
-            )}
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>
-            Save Changes
-          </Button>
-        </DialogFooter>
+          
+          <DialogFooter className="flex-shrink-0 pt-4">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit">
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
