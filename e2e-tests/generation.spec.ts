@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures/generation-fixtures";
 import { GenerationPage } from "./page-objects/GenerationPage";
+import { prepareForScreenshot } from "./fixtures/visual-test-helpers";
 
 test.describe("Flashcard Generation", () => {
   test("should generate flashcards from source text", async ({ page }) => {
@@ -13,6 +14,11 @@ test.describe("Flashcard Generation", () => {
 
     // Assert
     expect(await generationPage.getFlashcardCandidateCount()).toBe(3);
+
+    // Wait for candidates to load and prepare for stable screenshot
+    await page.waitForSelector('[data-testid="candidate-list"]', { timeout: 10000 });
+    await prepareForScreenshot(page);
+
     await expect(page).toHaveScreenshot("generation-results.png");
   });
 

@@ -33,7 +33,7 @@ export function CandidateList({
 }: CandidateListProps) {
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4" data-testid="candidate-list-loading">
         {Array.from({ length: 3 }).map((_, index) => (
           <div key={index} className="space-y-4">
             <Skeleton className="h-[200px] w-full rounded-lg" />
@@ -45,17 +45,17 @@ export function CandidateList({
 
   if (candidates.length === 0) {
     return (
-      <div className="text-center py-8">
+      <div className="text-center py-8" data-testid="candidate-list-empty">
         <p className="text-muted-foreground">No flashcard candidates available. Generate some flashcards first!</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="candidate-list">
       <GenerationActions candidates={candidates} onBulkAccept={onBulkAccept} isProcessing={isProcessing} />
 
-      <div className="space-y-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="space-y-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" data-testid="candidate-grid">
         {candidates.map((candidate) => (
           <CandidateListItem
             key={candidate.candidateId}

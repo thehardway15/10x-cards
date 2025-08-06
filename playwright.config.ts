@@ -20,12 +20,23 @@ export default defineConfig({
 
     // Capture screenshots on failure
     screenshot: "only-on-failure",
+
+    // Improve visual test stability
+    viewport: { width: 1280, height: 720 },
+    deviceScaleFactor: 1,
+    hasTouch: false,
+    isMobile: false,
   },
   projects: [
     {
       name: "chromium",
       use: {
         ...devices["Desktop Chrome"],
+        // Override device settings for consistent visual testing
+        viewport: { width: 1280, height: 720 },
+        deviceScaleFactor: 1,
+        hasTouch: false,
+        isMobile: false,
       },
     },
   ],
@@ -38,9 +49,13 @@ export default defineConfig({
   // Configure snapshots to use consistent naming across platforms
   expect: {
     toHaveScreenshot: {
-      threshold: 0.2,
+      // Increase threshold for CI environment differences
+      threshold: process.env.CI ? 0.3 : 0.2,
       // Use consistent naming without platform/browser suffixes
       pathTemplate: "{testDir}/{testFileDir}/{testFileName}-snapshots/{arg}{ext}",
+      // Add animations and font loading waits
+      animations: "disabled",
+      caret: "hide",
     },
   },
 });
