@@ -10,11 +10,6 @@ const PUBLIC_PATHS = ["/", "/login", "/register", "/api/auth/login", "/api/auth/
 // Protected API paths that require authentication but don't need redirection
 const PROTECTED_API_PATHS = ["/api/auth/change-password", "/api/auth/me", "/api/auth/logout"];
 
-interface Locals {
-  supabase: ReturnType<typeof createSupabaseServerInstance>;
-  user: User | null;
-}
-
 function handleAuthError(error: unknown, isApiRoute: boolean) {
   const errorResponse = {
     error: error instanceof JWTError ? error.message : "Unauthorized",
@@ -36,15 +31,9 @@ function handleAuthError(error: unknown, isApiRoute: boolean) {
 }
 
 export const onRequest = defineMiddleware(async ({ request, cookies, url, locals }, next) => {
-  // Create Supabase instance for this request (still needed for some operations)
-  const supabase = createSupabaseServerInstance({
-    headers: request.headers,
-    cookies,
-  });
-
-  // Add Supabase instance to locals
-  (locals as Locals).supabase = supabase;
-  (locals as Locals).user = null;
+  // Initialize locals
+  locals.supabase = null;
+  locals.user = null;
 
   // Check if the route requires authentication
   const isPublicRoute = PUBLIC_PATHS.includes(url.pathname);
@@ -77,7 +66,7 @@ export const onRequest = defineMiddleware(async ({ request, cookies, url, locals
       });
 
       // Set user data from JWT payload
-      (locals as Locals).user = {
+      locals.user = {
         id: payload.sub,
         email: payload.email,
         role: payload.role,
@@ -87,8 +76,14 @@ export const onRequest = defineMiddleware(async ({ request, cookies, url, locals
     }
   }
 
-  // We'll handle client-side redirections instead of server-side to avoid loops
-  // Client-side code will check localStorage for auth_token
+  // Create Supabase instance for API routes (needed for database operations)
+  // The optimized configuration in supabase.client.ts will prevent auth cookie operations
+  if (isApiRoute) {
+    locals.supabase = createSupabaseServerInstance({
+      headers: request.headers,
+      cookies,
+    });
+  }
 
   const response = await next();
   return response;

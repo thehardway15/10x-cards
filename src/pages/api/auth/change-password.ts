@@ -1,5 +1,4 @@
 import type { APIRoute } from "astro";
-import { createSupabaseServerInstance } from "../../../db/supabase.client";
 import { z } from "zod";
 import { createToken } from "../../../lib/auth/jwt";
 
@@ -21,7 +20,13 @@ export const POST: APIRoute = async ({ request, locals }) => {
       });
     }
 
-    const supabase = createSupabaseServerInstance({ headers: request.headers });
+    const { supabase } = locals;
+    if (!supabase) {
+      return new Response(JSON.stringify({ error: "Supabase client not available" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
     // Update password
     const { error } = await supabase.auth.updateUser({

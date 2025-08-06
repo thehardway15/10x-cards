@@ -54,14 +54,23 @@ export function useGeneration() {
     setState((prev) => ({ ...prev, status: "loading", error: null }));
 
     try {
+      const token = localStorage.getItem("auth_token");
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
       const response = await fetch("/api/generations", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ sourceText: state.sourceText } as CreateGenerationCommand),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to generate flashcards");
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = (await response.json()) as CreateGenerationResponseDto;
@@ -96,6 +105,11 @@ export function useGeneration() {
     }));
 
     try {
+      const token = localStorage.getItem("auth_token");
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
       const command: BulkCreateFlashcardsCommand = [
         {
           front: candidate.front,
@@ -107,7 +121,10 @@ export function useGeneration() {
 
       const response = await fetch("/api/flashcards", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(command),
       });
 

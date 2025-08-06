@@ -6,6 +6,17 @@ import type { GenerationCandidateViewModel } from "../useGeneration";
 // Mock fetch globally
 vi.stubGlobal("fetch", vi.fn());
 
+// Mock localStorage
+const localStorageMock = {
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+};
+Object.defineProperty(window, "localStorage", {
+  value: localStorageMock,
+});
+
 describe("useGeneration Hook", () => {
   // Mock data for tests
   const mockGenerationResponse = {
@@ -27,6 +38,8 @@ describe("useGeneration Hook", () => {
   // Reset mocks before each test
   beforeEach(() => {
     vi.clearAllMocks();
+    // Mock localStorage to return a valid token
+    localStorageMock.getItem.mockReturnValue("mock-token");
     // Default success response for fetch
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
@@ -70,7 +83,10 @@ describe("useGeneration Hook", () => {
     // Verify fetch was called with correct params
     expect(fetch).toHaveBeenCalledWith("/api/generations", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": "Bearer mock-token"
+      },
       body: JSON.stringify({ sourceText: "a".repeat(1000) }),
     });
 
@@ -92,6 +108,7 @@ describe("useGeneration Hook", () => {
       ok: false,
       status: 500,
       statusText: "Server Error",
+      json: async () => ({ error: "Server Error" }),
     });
 
     const { result } = renderHook(() => useGeneration());
@@ -108,7 +125,28 @@ describe("useGeneration Hook", () => {
 
     // Verify error state
     expect(result.current.status).toBe("error");
-    expect(result.current.error).toBe("Failed to generate flashcards");
+    expect(result.current.error).toBe("Server Error");
+  });
+
+  it("handles missing authentication token", async () => {
+    // Mock localStorage to return null (no token)
+    localStorageMock.getItem.mockReturnValue(null);
+
+    const { result } = renderHook(() => useGeneration());
+
+    // Set source text
+    act(() => {
+      result.current.handleSourceTextChange("a".repeat(1000));
+    });
+
+    // Call generate
+    await act(async () => {
+      await result.current.handleGenerate();
+    });
+
+    // Verify error state
+    expect(result.current.status).toBe("error");
+    expect(result.current.error).toBe("No authentication token found");
   });
 
   it("paginates candidates correctly", async () => {
@@ -178,7 +216,14 @@ describe("useGeneration Hook", () => {
     });
 
     // Verify fetch was called correctly
-    expect(fetch).toHaveBeenCalledWith("/api/flashcards", expect.any(Object));
+    expect(fetch).toHaveBeenCalledWith("/api/flashcards", {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": "Bearer mock-token"
+      },
+      body: expect.any(String),
+    });
 
     // The candidate should be removed from the list
     expect(result.current.candidates.find((c) => c.candidateId === "c1")).toBeUndefined();
