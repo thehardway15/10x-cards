@@ -83,9 +83,9 @@ describe("useGeneration Hook", () => {
     // Verify fetch was called with correct params
     expect(fetch).toHaveBeenCalledWith("/api/generations", {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer mock-token"
+        Authorization: "Bearer mock-token",
       },
       body: JSON.stringify({ sourceText: "a".repeat(1000) }),
     });
@@ -218,9 +218,9 @@ describe("useGeneration Hook", () => {
     // Verify fetch was called correctly
     expect(fetch).toHaveBeenCalledWith("/api/flashcards", {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer mock-token"
+        Authorization: "Bearer mock-token",
       },
       body: expect.any(String),
     });
