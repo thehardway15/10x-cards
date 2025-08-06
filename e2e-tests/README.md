@@ -23,7 +23,7 @@ Example of a Page Object:
 
 ```ts
 // page-objects/LoginPage.ts
-import { Page, Locator, expect } from '@playwright/test';
+import { Page, Locator, expect } from "@playwright/test";
 
 export class LoginPage {
   readonly page: Page;
@@ -41,7 +41,7 @@ export class LoginPage {
   }
 
   async goto() {
-    await this.page.goto('/login');
+    await this.page.goto("/login");
   }
 
   async login(email: string, password: string) {
@@ -62,7 +62,7 @@ To perform visual comparison testing:
 
 ```ts
 // Capture screenshot for comparison
-await expect(page).toHaveScreenshot('login-page.png');
+await expect(page).toHaveScreenshot("login-page.png");
 ```
 
 ## Traces and Debugging
@@ -78,8 +78,8 @@ npx playwright show-trace trace.zip
 Store test data in the fixtures directory and use Playwright fixtures for setup/teardown:
 
 ```ts
-import { test as base } from '@playwright/test';
-import { LoginPage } from './page-objects/LoginPage';
+import { test as base } from "@playwright/test";
+import { LoginPage } from "./page-objects/LoginPage";
 
 // Define a custom fixture
 type MyFixtures = {
@@ -96,8 +96,8 @@ const test = base.extend<MyFixtures>({
 });
 
 // Use the fixture in tests
-test('login should work', async ({ loginPage }) => {
-  await loginPage.login('user@example.com', 'password');
+test("login should work", async ({ loginPage }) => {
+  await loginPage.login("user@example.com", "password");
   // assertions...
 });
-``` 
+```

@@ -50,6 +50,7 @@ npm run test:e2e:codegen
 Unit tests are located near the files they test with a `.test.ts` or `.test.tsx` suffix.
 
 Example:
+
 ```
 src/
   lib/
@@ -63,6 +64,7 @@ src/
 Component tests use the `.component.test.tsx` suffix to distinguish them from other tests.
 
 Example:
+
 ```
 src/
   components/
@@ -129,4 +131,4 @@ This testing setup is designed to work in CI environments. The CI configuration 
 1. Run linting
 2. Run unit and component tests
 3. Run E2E tests
-4. Generate and upload coverage reports 
+4. Generate and upload coverage reports

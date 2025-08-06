@@ -45,6 +45,7 @@ The E2E tests install only the Chromium browser as specified in the Playwright c
 ### Status Comments
 
 The workflow automatically posts status comments to pull requests with:
+
 - Overall status (✅ Passed / ❌ Failed)
 - Individual job results
 - Automatic cleanup of previous status comments
@@ -52,6 +53,7 @@ The workflow automatically posts status comments to pull requests with:
 ### Artifacts
 
 The following artifacts are uploaded and retained for 30 days:
+
 - `unit-test-coverage` - Unit test coverage reports
 - `playwright-report` - Playwright HTML test reports
 - `test-results` - E2E test results
@@ -66,4 +68,4 @@ The following artifacts are uploaded and retained for 30 days:
 
 - If E2E tests fail, check that all environment variables are properly set
 - Ensure the Playwright configuration matches the CI environment
-- Check that the test database is accessible from GitHub Actions runners 
+- Check that the test database is accessible from GitHub Actions runners

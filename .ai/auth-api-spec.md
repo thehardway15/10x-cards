@@ -7,6 +7,7 @@ This document describes the authentication API endpoints and their usage with JW
 ## Endpoints
 
 ### Login
+
 ```
 POST /api/auth/login
 
@@ -33,6 +34,7 @@ Response (400 Bad Request):
 ```
 
 ### Register
+
 ```
 POST /api/auth/register
 
@@ -58,6 +60,7 @@ Response (400 Bad Request):
 ```
 
 ### Verify Identity
+
 ```
 GET /api/auth/me
 Authorization: Bearer <token>
@@ -78,6 +81,7 @@ Response (401 Unauthorized):
 ```
 
 ### Change Password
+
 ```
 POST /api/auth/change-password
 Authorization: Bearer <token>
@@ -106,6 +110,7 @@ Response (401 Unauthorized):
 ```
 
 ### Logout
+
 ```
 POST /api/auth/logout
 Authorization: Bearer <token>
@@ -119,11 +124,13 @@ Response (200 OK):
 ## Authentication Flow
 
 1. **Login/Registration**:
+
    - User submits credentials
    - Server validates and returns JWT token
    - Client stores token in localStorage
 
 2. **Authenticated Requests**:
+
    - Client includes token in Authorization header
    - Server validates token and processes request
    - On 401 response, client redirects to login
@@ -144,6 +151,7 @@ Response (200 OK):
 ## Error Handling
 
 Common error responses:
+
 - 400: Bad Request (validation errors)
 - 401: Unauthorized (missing/invalid token)
 - 403: Forbidden (insufficient permissions)
@@ -152,17 +160,18 @@ Common error responses:
 ## Client Implementation
 
 Example of adding auth header:
+
 ```typescript
 const api = {
   fetch: async (url: string, options: RequestInit = {}) => {
-    const token = localStorage.getItem('auth_token');
+    const token = localStorage.getItem("auth_token");
     if (token) {
       options.headers = {
         ...options.headers,
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       };
     }
     return fetch(url, options);
-  }
+  },
 };
 ```

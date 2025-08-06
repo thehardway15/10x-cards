@@ -1,9 +1,11 @@
 # API Endpoint Implementation Plan: POST /api/generations
 
 ## 1. Przegląd punktu końcowego
+
 - Cel: Utworzyć nową sesję generowania fiszek przy pomocy AI i zwrócić listę kandydatów.
 
 ## 2. Szczegóły żądania
+
 - Metoda HTTP: POST
 - URL: `/api/generations`
 - Nagłówki:
@@ -19,6 +21,7 @@
   - Opcjonalne: brak
 
 ## 3. Szczegóły odpowiedzi
+
 - Status 201 Created
 - Wykorzystywane typy:
   - `CreateGenerationResponseDto`
@@ -52,6 +55,7 @@
   - 500 – błąd serwera
 
 ## 4. Przepływ danych
+
 1. Parsowanie i walidacja requestu przy pomocy Zod:
    - `z.object({ sourceText: z.string().min(1000).max(10000) })`
 2. Uwierzytelnienie użytkownika z `locals.supabase` → uzyskanie `user.id`
@@ -65,6 +69,7 @@
 8. Zwrócenie `CreateGenerationResponseDto`
 
 ## 5. Względy bezpieczeństwa
+
 - Autoryzacja: sprawdzanie tokena Supabase w każdym żądaniu
 - Walidacja danych surowych (Zod)
 - Ograniczenie długości `sourceText` do [1000,10000]
@@ -73,6 +78,7 @@
 - Ograniczenie dostępu CORS jeśli wymagane
 
 ## 6. Obsługa błędów
+
 - 400: błąd walidacji (ZodError)
 - 401: brak lub błędny token
 - 429: przekroczono limit zapytań
@@ -80,12 +86,14 @@
 - 500: nieprzewidziane błędy DB lub środowiska
 
 ## 7. Rozważania dotyczące wydajności
+
 - Synchronous AI call może być wolny → rozważ asynchroniczne kolejkowanie lub streaming
 - Caching wyników po hash'u `sourceText`
 - Optymalizacja insertów (batching, transakcje)
 - Monitoring metryk czasu odpowiedzi (Telemetry)
 
 ## 8. Kroki implementacji
+
 1. Utworzyć Zod schema w `src/pages/api/generations.ts`
 2. Stworzyć `src/lib/services/generation.service.ts` z metodą `createGeneration`
 3. Implementować endpoint w Astro:
@@ -96,4 +104,4 @@
 6. Dodać logikę zapisu błędów do `generation_error_logs`
 7. Zapis `generations` w DB i mapowanie na DTO
 8. Uaktualnić dokumentację w README i plikach OpenAPI (jeśli istnieją)
-9. Skonfigurować rate limiting w middleware lub zewnętrznej usłudze 
+9. Skonfigurować rate limiting w middleware lub zewnętrznej usłudze
