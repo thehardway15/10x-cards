@@ -8,9 +8,9 @@ on:
   workflow_dispatch:
     inputs:
       update_snapshots:
-        description: 'Update Playwright visual snapshots'
+        description: "Update Playwright visual snapshots"
         required: false
-        default: 'false'
+        default: "false"
         type: boolean
 
 env:
@@ -149,7 +149,7 @@ jobs:
         with:
           commit_message: "ci: Update Playwright snapshots"
           branch: ${{ github.head_ref || github.ref_name }}
-          file_pattern: 'e2e-tests/**/*.png'
+          file_pattern: "e2e-tests/**/*.png"
 
   status-comment:
     name: Status Comment
