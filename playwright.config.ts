@@ -40,7 +40,7 @@ export default defineConfig({
     toHaveScreenshot: {
       threshold: 0.2,
       // Use consistent naming without platform/browser suffixes
-      pathTemplate: '{testDir}/{testFileDir}/{testFileName}-snapshots/{arg}{ext}',
+      pathTemplate: "{testDir}/{testFileDir}/{testFileName}-snapshots/{arg}{ext}",
     },
   },
 });
