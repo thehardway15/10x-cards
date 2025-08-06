@@ -1,20 +1,20 @@
-import type { ReactElement } from 'react';
-import { render as rtlRender } from '@testing-library/react';
-import type { RenderOptions } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { vi } from 'vitest';
+import type { ReactElement } from "react";
+import { render as rtlRender } from "@testing-library/react";
+import type { RenderOptions } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { vi } from "vitest";
 
 // Custom render for adding providers, context, etc.
-function render(ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) {
+function render(ui: ReactElement, options?: Omit<RenderOptions, "wrapper">) {
   return {
     ...rtlRender(ui, options),
     // Return userEvent instance for convenience
-    user: userEvent.setup()
+    user: userEvent.setup(),
   };
 }
 
 // Re-export everything from testing-library
-export * from '@testing-library/react';
+export * from "@testing-library/react";
 // Override render method with our custom version
 export { render };
 
@@ -41,7 +41,7 @@ export const mockSupabaseClient = {
 };
 
 // Helper for mocking fetch responses
-export const mockFetchResponse = (data: any, status = 200) => {
+export const mockFetchResponse = (data: unknown, status = 200) => {
   return {
     ok: status >= 200 && status < 300,
     status,
@@ -49,4 +49,4 @@ export const mockFetchResponse = (data: any, status = 200) => {
     text: async () => JSON.stringify(data),
     headers: new Headers(),
   };
-}; 
+};

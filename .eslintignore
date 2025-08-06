@@ -1,0 +1,18 @@
+# Astro files
+*.astro
+
+# Build outputs
+dist/
+.astro/
+
+# Node modules
+node_modules/
+
+# Test outputs
+test-results/
+playwright-report/
+
+# Environment files
+.env
+.env.local
+.env.production 

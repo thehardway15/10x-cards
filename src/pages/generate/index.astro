@@ -1,7 +1,7 @@
 ---
-import Layout from '@/layouts/Layout.astro';
-import { GenerateView } from '@/components/generate/GenerateView';
-import { TopBar } from '@/components/navigation/TopBar';
+import Layout from "@/layouts/Layout.astro";
+import { GenerateView } from "@/components/generate/GenerateView";
+import { TopBar } from "@/components/navigation/TopBar";
 
 // This page requires authentication, but we'll handle it client-side
 ---
@@ -12,10 +12,10 @@ import { TopBar } from '@/components/navigation/TopBar';
     <GenerateView client:load />
   </main>
 
-  <script>
+  <script is:inline>
     // Check if user is authenticated, redirect if not
-    if (!localStorage.getItem('auth_token')) {
-      window.location.href = '/login';
+    if (!localStorage.getItem("auth_token")) {
+      window.location.href = "/login";
     }
   </script>
-</Layout> 
+</Layout>

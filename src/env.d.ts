@@ -1,7 +1,7 @@
 /// <reference types="astro/client" />
 
-import type { SupabaseClient } from './db/supabase.client';
-import type { Session, User } from '@supabase/supabase-js';
+import type { SupabaseClient } from "./db/supabase.client";
+import type { Session, User } from "@supabase/supabase-js";
 
 declare namespace App {
   interface Locals {

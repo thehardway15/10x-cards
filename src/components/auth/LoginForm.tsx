@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -15,10 +15,10 @@ export function LoginForm() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       });
@@ -26,19 +26,19 @@ export function LoginForm() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to login');
+        throw new Error(data.error || "Failed to login");
       }
 
       // Store JWT token in localStorage
-      localStorage.setItem('auth_token', data.token);
+      localStorage.setItem("auth_token", data.token);
 
       // Store user data in localStorage for convenience
-      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem("user", JSON.stringify(data.user));
 
       // Redirect to generate page on success
-      window.location.href = '/generate';
+      window.location.href = "/generate";
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'An error occurred during login');
+      toast.error(error instanceof Error ? error.message : "An error occurred during login");
     } finally {
       setIsLoading(false);
     }
@@ -48,9 +48,7 @@ export function LoginForm() {
     <div className="w-full max-w-md mx-auto space-y-8">
       <div className="space-y-2 text-center">
         <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
-        <p className="text-sm text-muted-foreground">
-          Enter your email to sign in to your account
-        </p>
+        <p className="text-sm text-muted-foreground">Enter your email to sign in to your account</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -81,17 +79,12 @@ export function LoginForm() {
           />
         </div>
 
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={isLoading}
-          data-testid="login-button"
-        >
-          {isLoading ? 'Signing in...' : 'Sign in'}
+        <Button type="submit" className="w-full" disabled={isLoading} data-testid="login-button">
+          {isLoading ? "Signing in..." : "Sign in"}
         </Button>
 
         <p className="text-sm text-center text-muted-foreground">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{" "}
           <a href="/register" className="text-primary hover:underline">
             Sign up
           </a>

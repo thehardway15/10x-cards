@@ -7,7 +7,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+} from "@/components/ui/alert-dialog";
 
 interface ConfirmActionDialogProps {
   isOpen: boolean;
@@ -15,11 +15,7 @@ interface ConfirmActionDialogProps {
   onConfirm: () => void;
 }
 
-export function ConfirmActionDialog({
-  isOpen,
-  onOpenChange,
-  onConfirm,
-}: ConfirmActionDialogProps) {
+export function ConfirmActionDialog({ isOpen, onOpenChange, onConfirm }: ConfirmActionDialogProps) {
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent>
@@ -31,11 +27,14 @@ export function ConfirmActionDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+          <AlertDialogAction
+            onClick={onConfirm}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
             Reject
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   );
-} 
+}

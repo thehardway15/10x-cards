@@ -1,5 +1,5 @@
-import type { Page, Locator } from '@playwright/test';
-import { expect } from '@playwright/test';
+import type { Page, Locator } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 export class HomePage {
   readonly page: Page;
@@ -8,12 +8,12 @@ export class HomePage {
 
   constructor(page: Page) {
     this.page = page;
-    this.title = page.getByRole('heading', { name: 'Welcome to FlashAI' });
+    this.title = page.getByRole("heading", { name: "Welcome to FlashAI" });
     this.welcomeMessage = page.locator('[data-testid="welcome-message"]');
   }
 
   async goto() {
-    await this.page.goto('/');
+    await this.page.goto("/");
   }
 
   async expectTitleVisible() {
@@ -25,6 +25,6 @@ export class HomePage {
   }
 
   async takeScreenshot() {
-    await this.page.screenshot({ path: 'homepage.png' });
+    await this.page.screenshot({ path: "homepage.png" });
   }
-} 
+}

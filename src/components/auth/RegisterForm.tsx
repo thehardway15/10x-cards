@@ -1,29 +1,29 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
-import { apiClient } from '@/lib/api.utils';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { apiClient } from "@/lib/api.utils";
 
 export function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
   const [errors, setErrors] = useState({
-    password: '',
-    confirmPassword: '',
+    password: "",
+    confirmPassword: "",
   });
 
   const validatePassword = (password: string) => {
     if (password.length < 8) {
-      return 'Password must be at least 8 characters long';
+      return "Password must be at least 8 characters long";
     }
     if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
-      return 'Password must contain at least one letter and one number';
+      return "Password must contain at least one letter and one number";
     }
-    return '';
+    return "";
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,8 +32,7 @@ export function RegisterForm() {
     setErrors({
       ...errors,
       password: validatePassword(password),
-      confirmPassword:
-        password !== formData.confirmPassword ? 'Passwords do not match' : '',
+      confirmPassword: password !== formData.confirmPassword ? "Passwords do not match" : "",
     });
   };
 
@@ -42,23 +41,19 @@ export function RegisterForm() {
     setFormData({ ...formData, confirmPassword });
     setErrors({
       ...errors,
-      confirmPassword:
-        confirmPassword !== formData.password ? 'Passwords do not match' : '',
+      confirmPassword: confirmPassword !== formData.password ? "Passwords do not match" : "",
     });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate before submission
     const passwordError = validatePassword(formData.password);
     if (passwordError || formData.password !== formData.confirmPassword) {
       setErrors({
         password: passwordError,
-        confirmPassword:
-          formData.password !== formData.confirmPassword
-            ? 'Passwords do not match'
-            : '',
+        confirmPassword: formData.password !== formData.confirmPassword ? "Passwords do not match" : "",
       });
       return;
     }
@@ -66,21 +61,25 @@ export function RegisterForm() {
     setIsLoading(true);
 
     try {
-      await apiClient.post('/api/auth/register', {
-        email: formData.email,
-        password: formData.password,
-      }, { skipAuth: true });
+      await apiClient.post(
+        "/api/auth/register",
+        {
+          email: formData.email,
+          password: formData.password,
+        },
+        { skipAuth: true }
+      );
 
       // Show success message
-      toast.success('Registration successful! Redirecting to login...');
+      toast.success("Registration successful! Redirecting to login...");
 
       // Wait a bit for the toast to be visible
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       // Redirect to login page
-      window.location.href = '/login';
+      window.location.href = "/login";
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'An error occurred during registration');
+      toast.error(error instanceof Error ? error.message : "An error occurred during registration");
     } finally {
       setIsLoading(false);
     }
@@ -90,9 +89,7 @@ export function RegisterForm() {
     <div className="w-full max-w-md mx-auto space-y-8">
       <div className="space-y-2 text-center">
         <h1 className="text-2xl font-semibold tracking-tight">Create an account</h1>
-        <p className="text-sm text-muted-foreground">
-          Enter your email below to create your account
-        </p>
+        <p className="text-sm text-muted-foreground">Enter your email below to create your account</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -115,17 +112,13 @@ export function RegisterForm() {
           <input
             id="password"
             type="password"
-            className={`w-full px-3 py-2 border rounded-md ${
-              errors.password ? 'border-destructive' : ''
-            }`}
+            className={`w-full px-3 py-2 border rounded-md ${errors.password ? "border-destructive" : ""}`}
             value={formData.password}
             onChange={handlePasswordChange}
             data-testid="register-password"
             required
           />
-          {errors.password && (
-            <p className="text-sm text-destructive">{errors.password}</p>
-          )}
+          {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
         </div>
 
         <div className="space-y-2">
@@ -133,17 +126,13 @@ export function RegisterForm() {
           <input
             id="confirmPassword"
             type="password"
-            className={`w-full px-3 py-2 border rounded-md ${
-              errors.confirmPassword ? 'border-destructive' : ''
-            }`}
+            className={`w-full px-3 py-2 border rounded-md ${errors.confirmPassword ? "border-destructive" : ""}`}
             value={formData.confirmPassword}
             onChange={handleConfirmPasswordChange}
             data-testid="register-confirm-password"
             required
           />
-          {errors.confirmPassword && (
-            <p className="text-sm text-destructive">{errors.confirmPassword}</p>
-          )}
+          {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
         </div>
 
         <Button
@@ -152,11 +141,11 @@ export function RegisterForm() {
           disabled={isLoading || !!errors.password || !!errors.confirmPassword}
           data-testid="register-button"
         >
-          {isLoading ? 'Creating account...' : 'Create account'}
+          {isLoading ? "Creating account..." : "Create account"}
         </Button>
 
         <p className="text-sm text-center text-muted-foreground">
-          Already have an account?{' '}
+          Already have an account?{" "}
           <a href="/login" className="text-primary hover:underline">
             Sign in
           </a>

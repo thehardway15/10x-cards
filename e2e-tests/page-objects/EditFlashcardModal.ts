@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import type { Page } from "@playwright/test";
 
 export class EditFlashcardModal {
   readonly page: Page;
@@ -8,7 +8,7 @@ export class EditFlashcardModal {
   }
 
   async isVisible() {
-    await this.page.getByRole('dialog').waitFor({ state: 'visible', timeout: 5000 });
+    await this.page.getByRole("dialog").waitFor({ state: "visible", timeout: 5000 });
     return true;
   }
 
@@ -29,12 +29,12 @@ export class EditFlashcardModal {
   }
 
   async saveChanges() {
-    const button = this.page.getByRole('button', { name: 'Save Changes' });
+    const button = this.page.getByRole("button", { name: "Save Changes" });
     await button.scrollIntoViewIfNeeded();
     await button.click();
   }
 
   async cancel() {
-    await this.page.getByRole('button', { name: 'Cancel' }).click();
+    await this.page.getByRole("button", { name: "Cancel" }).click();
   }
 }

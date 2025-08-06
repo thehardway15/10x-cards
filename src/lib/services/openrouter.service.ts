@@ -1,11 +1,25 @@
-import { z } from 'zod';
-import { ConfigurationError, OpenRouterAuthError, OpenRouterRateLimitError, OpenRouterServerError, OpenRouterTimeoutError, ResponseValidationError } from '../errors';
-import type { OpenRouterServiceOptions, OpenRouterRequest, OpenRouterResponse, OpenRouterMessage, OpenRouterResponseFormat, OpenRouterServiceMessageOptions } from '../../types';
-import type { SupabaseClient } from '../../db/supabase.client';
-import fetch from 'cross-fetch';
+import { z } from "zod";
+import {
+  ConfigurationError,
+  OpenRouterAuthError,
+  OpenRouterRateLimitError,
+  OpenRouterServerError,
+  OpenRouterTimeoutError,
+  ResponseValidationError,
+} from "../errors";
+import type {
+  OpenRouterServiceOptions,
+  OpenRouterRequest,
+  OpenRouterResponse,
+  OpenRouterMessage,
+  OpenRouterResponseFormat,
+  OpenRouterServiceMessageOptions,
+} from "../../types";
+import type { SupabaseClient } from "../../db/supabase.client";
+import fetch from "cross-fetch";
 
-const DEFAULT_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
-const DEFAULT_MODEL = 'openai/gpt-4o-mini';
+const DEFAULT_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
+const DEFAULT_MODEL = "openai/gpt-4o-mini";
 const DEFAULT_TIMEOUT = 60000; // 60 seconds
 const MAX_RETRIES = 3;
 const INITIAL_RETRY_DELAY = 1000; // 1 second
@@ -19,7 +33,7 @@ export class OpenRouterService {
 
   constructor(options: OpenRouterServiceOptions, supabase: SupabaseClient) {
     if (!options.apiKey) {
-      throw new ConfigurationError('OpenRouter API key is required');
+      throw new ConfigurationError("OpenRouter API key is required");
     }
 
     this.apiKey = options.apiKey;
@@ -37,8 +51,8 @@ export class OpenRouterService {
     responseFormat?: OpenRouterResponseFormat;
   }): OpenRouterRequest {
     const messages: OpenRouterMessage[] = [
-      { role: 'system', content: options.systemMessage },
-      { role: 'user', content: options.userMessage }
+      { role: "system", content: options.systemMessage },
+      { role: "user", content: options.userMessage },
     ];
 
     return {
@@ -48,8 +62,8 @@ export class OpenRouterService {
       parameters: {
         ...this.defaultParams,
         ...options.modelParams,
-        response_format: options.responseFormat // Add response_format to parameters as well
-      }
+        response_format: options.responseFormat, // Add response_format to parameters as well
+      },
     };
   }
 
@@ -58,26 +72,26 @@ export class OpenRouterService {
     const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
 
     try {
-      console.log('Sending request to OpenRouter:', {
+      console.log("Sending request to OpenRouter:", {
         endpoint: this.endpoint,
         model: payload.model,
         messageCount: payload.messages.length,
         hasResponseFormat: !!payload.response_format,
-        payload: JSON.stringify(payload)
+        payload: JSON.stringify(payload),
       });
 
       const response = await fetch(this.endpoint, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://10xdevs.com',
-          'X-Title': '10xDevs',
-          'Accept': 'application/json'
+          Authorization: `Bearer ${this.apiKey}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://10xdevs.com",
+          "X-Title": "10xDevs",
+          Accept: "application/json",
         },
         body: JSON.stringify(payload),
         signal: controller.signal,
-        keepalive: true
+        keepalive: true,
       });
 
       clearTimeout(timeoutId);
@@ -87,28 +101,28 @@ export class OpenRouterService {
 
       try {
         responseData = JSON.parse(responseText);
-      } catch (error) {
-        console.error('Failed to parse response as JSON:', {
+      } catch {
+        console.error("Failed to parse response as JSON:", {
           status: response.status,
           statusText: response.statusText,
           responseText: responseText.substring(0, 1000), // Log first 1000 chars only
-          contentType: response.headers.get('content-type')
+          contentType: response.headers.get("content-type"),
         });
-        throw new OpenRouterServerError('Invalid JSON response from OpenRouter API');
+        throw new OpenRouterServerError("Invalid JSON response from OpenRouter API");
       }
 
       if (!response.ok) {
-        console.error('OpenRouter API error:', {
+        console.error("OpenRouter API error:", {
           status: response.status,
           statusText: response.statusText,
-          response: responseData
+          response: responseData,
         });
 
         switch (response.status) {
           case 401:
-            throw new OpenRouterAuthError('Invalid API key or unauthorized access');
+            throw new OpenRouterAuthError("Invalid API key or unauthorized access");
           case 429:
-            throw new OpenRouterRateLimitError('Rate limit exceeded');
+            throw new OpenRouterRateLimitError("Rate limit exceeded");
           case 500:
           case 502:
           case 503:
@@ -120,52 +134,59 @@ export class OpenRouterService {
       }
 
       const typedResponse = responseData as OpenRouterResponse;
-      console.log('OpenRouter response received:', {
+      console.log("OpenRouter response received:", {
         model: typedResponse.model,
         choicesCount: typedResponse.choices?.length,
-        usage: typedResponse.usage
+        usage: typedResponse.usage,
       });
 
       return typedResponse;
     } catch (error) {
       clearTimeout(timeoutId);
 
-      console.error('OpenRouter request failed:', {
-        error: error instanceof Error ? {
-          name: error.name,
-          message: error.message,
-          stack: error.stack,
-          cause: error.cause
-        } : error,
+      console.error("OpenRouter request failed:", {
+        error:
+          error instanceof Error
+            ? {
+                name: error.name,
+                message: error.message,
+                stack: error.stack,
+                cause: error.cause,
+              }
+            : String(error),
         retryCount,
         model: payload.model,
-        endpoint: this.endpoint
+        endpoint: this.endpoint,
       });
 
       // Handle network errors
       if (error instanceof Error) {
         const cause = error.cause as { code?: string; errno?: number } | undefined;
-        
+
         // DNS resolution errors
-        if (cause?.code === 'ENOTFOUND') {
+        if (cause?.code === "ENOTFOUND") {
           if (retryCount < MAX_RETRIES) {
             console.log(`DNS resolution failed, retrying (attempt ${retryCount + 1}/${MAX_RETRIES})`);
             const delay = INITIAL_RETRY_DELAY * Math.pow(2, retryCount);
-            await new Promise(resolve => setTimeout(resolve, delay));
+            await new Promise((resolve) => setTimeout(resolve, delay));
             return this.sendHttpRequest(payload, retryCount + 1);
           }
-          throw new OpenRouterServerError('Failed to resolve OpenRouter API hostname. Please check your internet connection.');
+          throw new OpenRouterServerError(
+            "Failed to resolve OpenRouter API hostname. Please check your internet connection."
+          );
         }
 
         // Connection errors
-        if (cause?.code === 'ECONNREFUSED' || cause?.code === 'ECONNRESET') {
+        if (cause?.code === "ECONNREFUSED" || cause?.code === "ECONNRESET") {
           if (retryCount < MAX_RETRIES) {
             console.log(`Connection error, retrying (attempt ${retryCount + 1}/${MAX_RETRIES})`);
             const delay = INITIAL_RETRY_DELAY * Math.pow(2, retryCount);
-            await new Promise(resolve => setTimeout(resolve, delay));
+            await new Promise((resolve) => setTimeout(resolve, delay));
             return this.sendHttpRequest(payload, retryCount + 1);
           }
-          throw new OpenRouterServerError('Failed to connect to OpenRouter API. Please check your internet connection.');
+          throw new OpenRouterServerError(
+            "Failed to connect to OpenRouter API. Please check your internet connection."
+          );
         }
       }
 
@@ -179,12 +200,12 @@ export class OpenRouterService {
       ) {
         console.log(`Retrying request (attempt ${retryCount + 1}/${MAX_RETRIES})`);
         const delay = INITIAL_RETRY_DELAY * Math.pow(2, retryCount);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
         return this.sendHttpRequest(payload, retryCount + 1);
       }
 
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        throw new OpenRouterTimeoutError('Request timed out');
+      if (error instanceof DOMException && error.name === "AbortError") {
+        throw new OpenRouterTimeoutError("Request timed out");
       }
 
       throw error;
@@ -195,29 +216,29 @@ export class OpenRouterService {
     try {
       const content = response.choices[0]?.message?.content;
       if (!content) {
-        console.error('Empty response from OpenRouter:', response);
-        throw new ResponseValidationError('Empty response from OpenRouter', { response });
+        console.error("Empty response from OpenRouter:", response);
+        throw new ResponseValidationError("Empty response from OpenRouter", { response });
       }
 
-      console.log('Validating OpenRouter response content:', { content });
+      console.log("Validating OpenRouter response content:", { content });
 
       let parsedContent: unknown;
       try {
         parsedContent = JSON.parse(content);
       } catch (error) {
-        console.error('Failed to parse JSON response:', { content, error });
-        throw new ResponseValidationError('Invalid JSON in response', { content });
+        console.error("Failed to parse JSON response:", { content, error });
+        throw new ResponseValidationError("Invalid JSON in response", { content });
       }
 
       try {
         return schema.parse(parsedContent);
       } catch (error) {
         if (error instanceof z.ZodError) {
-          console.error('Response validation failed:', {
+          console.error("Response validation failed:", {
             errors: error.errors,
-            content: parsedContent
+            content: parsedContent,
           });
-          throw new ResponseValidationError('Response validation failed', error.errors);
+          throw new ResponseValidationError("Response validation failed", error.errors);
         }
         throw error;
       }
@@ -225,33 +246,37 @@ export class OpenRouterService {
       if (error instanceof ResponseValidationError) {
         throw error;
       }
-      console.error('Unexpected error during response validation:', error);
-      throw new ResponseValidationError('Failed to validate response', error);
+      console.error("Unexpected error during response validation:", error);
+      throw new ResponseValidationError("Failed to validate response", error);
     }
   }
 
-  private async logError(error: Error, model: string, sourceTextHash: string, sourceTextLength: number, userId: string): Promise<void> {
+  private async logError(
+    error: Error,
+    model: string,
+    sourceTextHash: string,
+    sourceTextLength: number,
+    userId: string
+  ): Promise<void> {
     try {
-      let errorCode = 'UNKNOWN_ERROR';
-      if (error instanceof OpenRouterAuthError) errorCode = 'AUTH_ERROR';
-      if (error instanceof OpenRouterRateLimitError) errorCode = 'RATE_LIMIT';
-      if (error instanceof OpenRouterServerError) errorCode = 'SERVER_ERROR';
-      if (error instanceof OpenRouterTimeoutError) errorCode = 'TIMEOUT';
-      if (error instanceof ResponseValidationError) errorCode = 'VALIDATION_ERROR';
+      let errorCode = "UNKNOWN_ERROR";
+      if (error instanceof OpenRouterAuthError) errorCode = "AUTH_ERROR";
+      if (error instanceof OpenRouterRateLimitError) errorCode = "RATE_LIMIT";
+      if (error instanceof OpenRouterServerError) errorCode = "SERVER_ERROR";
+      if (error instanceof OpenRouterTimeoutError) errorCode = "TIMEOUT";
+      if (error instanceof ResponseValidationError) errorCode = "VALIDATION_ERROR";
 
-      await this.supabase
-        .from('generation_error_logs')
-        .insert({
-          model,
-          error_code: errorCode,
-          error_message: error.message,
-          source_text_hash: sourceTextHash,
-          source_text_length: sourceTextLength,
-          user_id: userId,
-          error_details: error instanceof ResponseValidationError ? error.details : undefined
-        });
+      await this.supabase.from("generation_error_logs").insert({
+        model,
+        error_code: errorCode,
+        error_message: error.message,
+        source_text_hash: sourceTextHash,
+        source_text_length: sourceTextLength,
+        user_id: userId,
+        error_details: error instanceof ResponseValidationError ? error.details : undefined,
+      });
     } catch (e) {
-      console.error('Failed to log OpenRouter error:', e);
+      console.error("Failed to log OpenRouter error:", e);
     }
   }
 
@@ -271,4 +296,4 @@ export class OpenRouterService {
       throw error;
     }
   }
-} 
+}
