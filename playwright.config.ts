@@ -51,8 +51,6 @@ export default defineConfig({
     toHaveScreenshot: {
       // Increase threshold for CI environment differences
       threshold: process.env.CI ? 0.3 : 0.2,
-      // Use consistent naming without platform/browser suffixes
-      pathTemplate: "{testDir}/{testFileDir}/{testFileName}-snapshots/{arg}{ext}",
       // Add animations and font loading waits
       animations: "disabled",
       caret: "hide",
