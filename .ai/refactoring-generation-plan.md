@@ -3,13 +3,16 @@
 ## 1. Przygotowanie środowiska
 
 ### 1.1 Instalacja zależności
+
 ```bash
 npm install react-hook-form @hookform/resolvers zod
 npm install -D @types/react-hook-form
 ```
 
 ### 1.2 Konfiguracja TypeScript
+
 Dodaj do `tsconfig.json`:
+
 ```json
 {
   "compilerOptions": {
@@ -22,63 +25,60 @@ Dodaj do `tsconfig.json`:
 ## 2. Implementacja Custom Hooks
 
 ### 2.1 Hook useBulkActions
+
 **Plik:** `src/lib/hooks/useBulkActions.ts`
 
 ```typescript
-import { useState } from 'react';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { toast } from "sonner";
 
 export const useBulkActions = (handleAccept: (id: string) => Promise<void>) => {
   const [isProcessing, setIsProcessing] = useState(false);
-  
+
   const processBulkAccept = async (candidateIds: string[]) => {
     if (candidateIds.length === 0) return;
-    
+
     setIsProcessing(true);
     const loadingToast = toast.loading(`Accepting ${candidateIds.length} flashcards...`);
-    
-    const results = await Promise.allSettled(
-      candidateIds.map(id => handleAccept(id))
-    );
-    
-    const successCount = results.filter(r => r.status === 'fulfilled').length;
-    const failureCount = results.filter(r => r.status === 'rejected').length;
-    
+
+    const results = await Promise.allSettled(candidateIds.map((id) => handleAccept(id)));
+
+    const successCount = results.filter((r) => r.status === "fulfilled").length;
+    const failureCount = results.filter((r) => r.status === "rejected").length;
+
     toast.dismiss(loadingToast);
-    
+
     if (successCount > 0) {
-      toast.success(`Successfully saved ${successCount} flashcard${successCount !== 1 ? 's' : ''}`);
+      toast.success(`Successfully saved ${successCount} flashcard${successCount !== 1 ? "s" : ""}`);
     }
     if (failureCount > 0) {
-      toast.error(`Failed to save ${failureCount} flashcard${failureCount !== 1 ? 's' : ''}`);
+      toast.error(`Failed to save ${failureCount} flashcard${failureCount !== 1 ? "s" : ""}`);
     }
-    
+
     setIsProcessing(false);
   };
-  
+
   return { processBulkAccept, isProcessing };
 };
 ```
 
 ### 2.2 Hook useFlashcardValidation
+
 **Plik:** `src/lib/hooks/useFlashcardValidation.ts`
 
 ```typescript
-import { z } from 'zod';
+import { z } from "zod";
 
 export const flashcardSchema = z.object({
-  front: z.string()
-    .min(1, 'Front side cannot be empty')
-    .max(200, 'Front side cannot exceed 200 characters'),
-  back: z.string()
-    .min(1, 'Back side cannot be empty')
-    .max(500, 'Back side cannot exceed 500 characters')
+  front: z.string().min(1, "Front side cannot be empty").max(200, "Front side cannot exceed 200 characters"),
+  back: z.string().min(1, "Back side cannot be empty").max(500, "Back side cannot exceed 500 characters"),
 });
 
 export const sourceTextSchema = z.object({
-  sourceText: z.string()
-    .min(1000, 'Text must be at least 1,000 characters')
-    .max(10000, 'Text must not exceed 10,000 characters')
+  sourceText: z
+    .string()
+    .min(1000, "Text must be at least 1,000 characters")
+    .max(10000, "Text must not exceed 10,000 characters"),
 });
 
 export type FlashcardFormData = z.infer<typeof flashcardSchema>;
@@ -88,6 +88,7 @@ export type SourceTextFormData = z.infer<typeof sourceTextSchema>;
 ## 3. Refaktoryzacja komponentów
 
 ### 3.1 EditFlashcardModal.tsx
+
 **Plik:** `src/components/generate/EditFlashcardModal.tsx`
 
 ```typescript
@@ -142,7 +143,7 @@ export function EditFlashcardModal({
 
   const onSubmit = (data: FlashcardFormData) => {
     if (!candidate) return;
-    
+
     onSave({
       ...candidate,
       ...data,
@@ -157,7 +158,7 @@ export function EditFlashcardModal({
         <DialogHeader>
           <DialogTitle>Edit Flashcard</DialogTitle>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-4">
           <div className="space-y-2">
             <Label htmlFor="front">
@@ -172,7 +173,7 @@ export function EditFlashcardModal({
               <p className="text-sm text-destructive">{errors.front.message}</p>
             )}
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="back">
               Back Side <span className="text-muted-foreground text-sm">({backValue.length}/500)</span>
@@ -186,7 +187,7 @@ export function EditFlashcardModal({
               <p className="text-sm text-destructive">{errors.back.message}</p>
             )}
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
@@ -203,6 +204,7 @@ export function EditFlashcardModal({
 ```
 
 ### 3.2 SourceTextInput.tsx
+
 **Plik:** `src/components/generate/SourceTextInput.tsx`
 
 ```typescript
@@ -257,7 +259,7 @@ export function SourceTextInput({
           {charCount.toLocaleString()} / 10,000
         </div>
       </div>
-      
+
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
           {errors.sourceText?.message || '\u00A0'}
@@ -276,6 +278,7 @@ export function SourceTextInput({
 ```
 
 ### 3.3 GenerationActions.tsx (nowy komponent)
+
 **Plik:** `src/components/generate/GenerationActions.tsx`
 
 ```typescript
@@ -289,14 +292,14 @@ interface GenerationActionsProps {
   isProcessing?: boolean;
 }
 
-export function GenerationActions({ 
-  candidates, 
-  onBulkAccept, 
-  isProcessing = false 
+export function GenerationActions({
+  candidates,
+  onBulkAccept,
+  isProcessing = false
 }: GenerationActionsProps) {
   const availableCandidates = candidates.filter(c => c.status === 'idle');
   const hasAvailableCandidates = availableCandidates.length > 0;
-  
+
   return (
     <div className="flex justify-end">
       <Button
@@ -313,6 +316,7 @@ export function GenerationActions({
 ```
 
 ### 3.4 CandidateList.tsx
+
 **Plik:** `src/components/generate/CandidateList.tsx`
 
 ```typescript
@@ -378,7 +382,7 @@ export function CandidateList({
         onBulkAccept={onBulkAccept}
         isProcessing={isProcessing}
       />
-      
+
       <div className="space-y-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {candidates.map((candidate) => (
           <CandidateListItem
@@ -390,7 +394,7 @@ export function CandidateList({
           />
         ))}
       </div>
-      
+
       {totalItems > pageSize && (
         <div className="flex justify-center">
           <Pagination
@@ -406,6 +410,7 @@ export function CandidateList({
 ```
 
 ### 3.5 GenerateView.tsx
+
 **Plik:** `src/components/generate/GenerateView.tsx`
 
 ```typescript
@@ -525,6 +530,7 @@ export function GenerateView() {
 ## 4. Aktualizacja testów
 
 ### 4.1 Testy dla React Hook Form
+
 **Plik:** `src/components/generate/__tests__/EditFlashcardModal.test.tsx`
 
 ```typescript
@@ -558,7 +564,7 @@ describe('EditFlashcardModal with React Hook Form', () => {
   });
 
   it('validates form fields using React Hook Form', async () => {
-    const { result } = renderHook(() => 
+    const { result } = renderHook(() =>
       useForm({
         resolver: zodResolver(flashcardSchema),
         defaultValues: { front: '', back: '' }
@@ -566,11 +572,11 @@ describe('EditFlashcardModal with React Hook Form', () => {
     );
 
     const { trigger } = result.current;
-    
+
     // Test empty validation
     const isValid = await trigger();
     expect(isValid).toBe(false);
-    
+
     // Test length validation
     result.current.setValue('front', 'a'.repeat(201));
     const isFrontValid = await trigger('front');
@@ -604,7 +610,7 @@ describe('EditFlashcardModal with React Hook Form', () => {
 
   it('disables save button when form is invalid', () => {
     render(<EditFlashcardModal {...defaultProps} />);
-    
+
     const saveButton = screen.getByRole('button', { name: /Save Changes/i });
     expect(saveButton).toBeDisabled();
   });
@@ -612,38 +618,37 @@ describe('EditFlashcardModal with React Hook Form', () => {
 ```
 
 ### 4.2 Testy dla custom hooks
+
 **Plik:** `src/lib/hooks/__tests__/useBulkActions.test.ts`
 
 ```typescript
-import { describe, it, expect, vi } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
-import { useBulkActions } from '../useBulkActions';
+import { describe, it, expect, vi } from "vitest";
+import { renderHook, act } from "@testing-library/react";
+import { useBulkActions } from "../useBulkActions";
 
-describe('useBulkActions', () => {
-  it('processes bulk accept actions correctly', async () => {
-    const mockHandleAccept = vi.fn()
-      .mockResolvedValueOnce(undefined)
-      .mockRejectedValueOnce(new Error('Failed'));
-    
+describe("useBulkActions", () => {
+  it("processes bulk accept actions correctly", async () => {
+    const mockHandleAccept = vi.fn().mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error("Failed"));
+
     const { result } = renderHook(() => useBulkActions(mockHandleAccept));
-    
+
     await act(async () => {
-      await result.current.processBulkAccept(['id1', 'id2']);
+      await result.current.processBulkAccept(["id1", "id2"]);
     });
-    
+
     expect(mockHandleAccept).toHaveBeenCalledTimes(2);
-    expect(mockHandleAccept).toHaveBeenCalledWith('id1');
-    expect(mockHandleAccept).toHaveBeenCalledWith('id2');
+    expect(mockHandleAccept).toHaveBeenCalledWith("id1");
+    expect(mockHandleAccept).toHaveBeenCalledWith("id2");
   });
 
-  it('handles empty candidate list', async () => {
+  it("handles empty candidate list", async () => {
     const mockHandleAccept = vi.fn();
     const { result } = renderHook(() => useBulkActions(mockHandleAccept));
-    
+
     await act(async () => {
       await result.current.processBulkAccept([]);
     });
-    
+
     expect(mockHandleAccept).not.toHaveBeenCalled();
   });
 });
@@ -652,16 +657,19 @@ describe('useBulkActions', () => {
 ## 5. Plan wdrożenia krok po kroku
 
 ### Faza 1: Przygotowanie (1-2 dni)
+
 1. Instalacja zależności React Hook Form
 2. Konfiguracja TypeScript
 3. Utworzenie schematów walidacji
 
 ### Faza 2: Implementacja hooks (1 dzień)
+
 1. Implementacja `useBulkActions`
 2. Implementacja `useFlashcardValidation`
 3. Testy jednostkowe dla hooks
 
 ### Faza 3: Refaktoryzacja komponentów (2-3 dni)
+
 1. Refaktoryzacja `EditFlashcardModal.tsx`
 2. Refaktoryzacja `SourceTextInput.tsx`
 3. Utworzenie `GenerationActions.tsx`
@@ -669,12 +677,14 @@ describe('useBulkActions', () => {
 5. Uproszczenie `GenerateView.tsx`
 
 ### Faza 4: Testy i walidacja (1-2 dni)
+
 1. Aktualizacja testów jednostkowych
 2. Testy integracyjne
 3. Testy edge cases
 4. Code review
 
 ### Faza 5: Wdrożenie (1 dzień)
+
 1. Merge do głównej gałęzi
 2. Testy w środowisku staging
 3. Wdrożenie produkcyjne
@@ -682,16 +692,19 @@ describe('useBulkActions', () => {
 ## 6. Metryki sukcesu
 
 ### 6.1 Metryki kodu
+
 - **Redukcja LOC**: Oczekiwana redukcja o 20-30%
 - **Cyklomatyczna złożoność**: Zmniejszenie o 15-25%
 - **Duplikacja kodu**: Eliminacja duplikacji walidacji
 
 ### 6.2 Metryki wydajności
+
 - **Re-rendery**: Zmniejszenie o 40-50% dzięki React Hook Form
 - **Bundle size**: Minimalny wzrost (< 10KB)
 - **Time to Interactive**: Brak wpływu
 
 ### 6.3 Metryki jakości
+
 - **Test coverage**: Utrzymanie > 90%
 - **TypeScript coverage**: 100%
 - **Linting errors**: 0

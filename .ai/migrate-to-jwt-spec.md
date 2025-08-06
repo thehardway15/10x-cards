@@ -7,6 +7,7 @@ Dokument opisuje plan migracji systemu autoryzacji z obecnego podejścia oparteg
 ## 2. Aktualny stan systemu autoryzacji
 
 Obecne rozwiązanie opiera się na:
+
 - Supabase Auth z przechowywaniem sesji w ciasteczkach (`sb`)
 - Middleware Astro weryfikującym sesje dla każdego żądania
 - Mechanizmie przekazywania stanu sesji między klientem a serwerem za pomocą ciasteczek
@@ -22,6 +23,7 @@ Obecne rozwiązanie opiera się na:
 ## 3. Proponowana architektura JWT
 
 Nowy system autoryzacji będzie wykorzystywał tokeny JWT (JSON Web Token) jako główny mechanizm uwierzytelniania, eliminując potrzebę stanowych sesji po stronie serwera. Token JWT będzie przechowywany:
+
 - Po stronie klienta w localStorage
 - Przekazywany w nagłówku `Authorization: Bearer <token>` dla żądań API
 - Weryfikowany przez middleware serwera dla każdego chronionego endpointu
@@ -135,12 +137,14 @@ Payload:
 ## 6. Przepływ autoryzacji
 
 1. **Logowanie użytkownika**:
+
    - Frontend wysyła dane logowania do `/api/auth/login`
    - Backend weryfikuje dane z Supabase Auth
    - Po pozytywnej weryfikacji generuje token JWT
    - Frontend zapisuje token w localStorage
 
 2. **Autoryzacja żądań API**:
+
    - Frontend dołącza token do każdego żądania jako `Authorization: Bearer <token>`
    - Middleware weryfikuje token dla chronionych endpointów
    - Backend dekoduje token JWT i udostępnia dane użytkownika dla API

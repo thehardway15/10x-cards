@@ -1,7 +1,7 @@
 ---
-import Layout from '@/layouts/Layout.astro';
-import { LoginForm } from '@/components/auth/LoginForm';
-import { TopBar } from '@/components/navigation/TopBar';
+import Layout from "@/layouts/Layout.astro";
+import { LoginForm } from "@/components/auth/LoginForm";
+import { TopBar } from "@/components/navigation/TopBar";
 
 // We'll handle redirect client-side
 ---
@@ -12,10 +12,10 @@ import { TopBar } from '@/components/navigation/TopBar';
     <LoginForm client:load />
   </main>
 
-  <script>
+  <script is:inline>
     // If user is already logged in, redirect to generate
-    if (localStorage.getItem('auth_token')) {
-      window.location.href = '/generate';
+    if (localStorage.getItem("auth_token")) {
+      window.location.href = "/generate";
     }
   </script>
-</Layout> 
+</Layout>

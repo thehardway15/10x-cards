@@ -12,6 +12,7 @@
 ### 2.2 Flashcard Generation (AI)
 
 #### POST /api/generations
+
 - Description: Create a new AI generation session and return candidate flashcards
 - Headers: `Authorization: Bearer <token>`
 - Request Body:
@@ -34,7 +35,7 @@
       "createdAt": "ISO timestamp"
     },
     "candidates": [
-      { "candidateId": "UUID", "front": "...", "back": "..." },
+      { "candidateId": "UUID", "front": "...", "back": "..." }
       // ...
     ]
   }
@@ -47,6 +48,7 @@
 ### 2.3 Flashcards (Accepted and Manual)
 
 #### GET /api/flashcards
+
 - Description: List user's active flashcards
 - Headers: `Authorization: Bearer <token>`
 - Query Parameters:
@@ -57,7 +59,9 @@
 - Response (200):
   ```json
   {
-    "items": [ { "id": "UUID", "front": "...", "back": "...", "source": "manual|ai-full|ai-edited", "createdAt": "..." } ],
+    "items": [
+      { "id": "UUID", "front": "...", "back": "...", "source": "manual|ai-full|ai-edited", "createdAt": "..." }
+    ],
     "page": 1,
     "pageSize": 20,
     "total": 123
@@ -65,6 +69,7 @@
   ```
 
 #### GET /api/flashcards/{id}
+
 - Description: Retrieve a single flashcard
 - Headers: `Authorization: Bearer <token>`
 - Response (200):
@@ -75,6 +80,7 @@
   - 404: Not found or belongs to another user
 
 #### POST /api/flashcards
+
 - Description: Create multiple flashcards in one request (bulk manual or accept AI candidates)
 - Headers: `Authorization: Bearer <token>`
 - Request Body:
@@ -85,7 +91,7 @@
       "back": "String (1–500 chars)",
       "source": "manual|ai-full|ai-edited",
       "generationId": "UUID (required if source != manual)"
-    },
+    }
     // ...
   ]
   ```
@@ -93,7 +99,7 @@
   ```json
   {
     "items": [
-      { "id": "UUID", "front": "...", "back": "...", "source": "...", "createdAt": "..." },
+      { "id": "UUID", "front": "...", "back": "...", "source": "...", "createdAt": "..." }
       // ...
     ]
   }
@@ -102,6 +108,7 @@
   - 400: Validation failed (list of errors per item)
 
 #### PUT /api/flashcards/{id}
+
 - Description: Update an existing flashcard (edit saved or AI candidate before accept)
 - Headers: `Authorization: Bearer <token>`
 - Request Body:
@@ -115,6 +122,7 @@
   - 404: Not found
 
 #### DELETE /api/flashcards/{id}
+
 - Description: Soft-delete a flashcard
 - Headers: `Authorization: Bearer <token>`
 - Response (204): No content
@@ -124,13 +132,23 @@
 ### 2.4 Generations
 
 #### GET /api/generations
+
 - Description: List user's generation sessions
 - Headers: `Authorization: Bearer <token>`
 - Query Parameters: `page`, `pageSize`, `sortBy`, `sortOrder`
 - Response (200):
   ```json
   {
-    "items": [ { "id": "UUID", "model": "...", "generatedCount": 50, "acceptedUneditedCount": 10, "acceptedEditedCount": 5, "createdAt": "..." } ],
+    "items": [
+      {
+        "id": "UUID",
+        "model": "...",
+        "generatedCount": 50,
+        "acceptedUneditedCount": 10,
+        "acceptedEditedCount": 5,
+        "createdAt": "..."
+      }
+    ],
     "page": 1,
     "pageSize": 20,
     "total": 12
@@ -138,16 +156,25 @@
   ```
 
 #### GET /api/generations/{id}
+
 - Description: Retrieve a specific generation session
 - Headers: `Authorization: Bearer <token>`
 - Response (200):
   ```json
-  { "id": "UUID", "model": "...", "generatedCount": 50, "acceptedUneditedCount": 10, "acceptedEditedCount": 5, "createdAt": "..." }
+  {
+    "id": "UUID",
+    "model": "...",
+    "generatedCount": 50,
+    "acceptedUneditedCount": 10,
+    "acceptedEditedCount": 5,
+    "createdAt": "..."
+  }
   ```
 
 ### 2.5 Generation Error Logs
 
 #### GET /api/error-logs
+
 - Description: List AI generation error logs
 - Headers: `Authorization: Bearer <token>`
 - Query Parameters: `page`, `pageSize`
@@ -187,4 +214,4 @@
 - Secure all endpoints with HTTPS
 - Apply rate limits (e.g., 5 requests/minute) on generation endpoints
 - Leverage Supabase RLS for data isolation
-- Log audit events (generation, accept, reject) in application logs for KPI 
+- Log audit events (generation, accept, reject) in application logs for KPI

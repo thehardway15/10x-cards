@@ -1,8 +1,8 @@
 ---
-import Layout from '@/layouts/Layout.astro';
-import { RegisterForm } from '@/components/auth/RegisterForm';
-import { TopBar } from '@/components/navigation/TopBar';
-import { createSupabaseServerInstance } from '../db/supabase.client';
+import Layout from "@/layouts/Layout.astro";
+import { RegisterForm } from "@/components/auth/RegisterForm";
+import { TopBar } from "@/components/navigation/TopBar";
+import { createSupabaseServerInstance } from "../db/supabase.client";
 
 // Redirect if user is already logged in
 const supabase = createSupabaseServerInstance({
@@ -10,10 +10,12 @@ const supabase = createSupabaseServerInstance({
   headers: Astro.request.headers,
 });
 
-const { data: { user } } = await supabase.auth.getUser();
+const {
+  data: { user },
+} = await supabase.auth.getUser();
 
 if (user) {
-  return Astro.redirect('/generate');
+  return Astro.redirect("/generate");
 }
 ---
 
@@ -22,4 +24,4 @@ if (user) {
   <main class="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center min-h-[calc(100vh-4rem)] py-8">
     <RegisterForm client:load />
   </main>
-</Layout> 
+</Layout>

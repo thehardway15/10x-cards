@@ -5,6 +5,7 @@
 Architektura interfejsu użytkownika (UI) dla aplikacji FlashAI została zaprojektowana w celu zapewnienia prostego, intuicyjnego i wydajnego doświadczenia użytkownika. Opiera się na podejściu zorientowanym na zadania, gdzie kluczowe funkcje, takie jak generowanie fiszek przez AI i zarządzanie nimi, są łatwo dostępne.
 
 Struktura dzieli się na dwie główne części:
+
 - **Publiczna**: Obejmuje strony logowania i rejestracji, dostępne dla niezalogowanych użytkowników.
 - **Prywatna (chroniona)**: Dostępna po zalogowaniu, zawiera wszystkie podstawowe funkcje aplikacji i jest objęta wspólnym layoutem z nawigacją.
 
@@ -13,6 +14,7 @@ Wykorzystanie biblioteki komponentów Shadcn/ui zapewnia spójność wizualną, 
 ## 2. Lista widoków
 
 ### Widok: Rejestracja
+
 - **Ścieżka:** `/register`
 - **Główny cel:** Umożliwienie nowym użytkownikom założenia konta.
 - **Kluczowe informacje do wyświetlenia:** Formularz z polami na adres e-mail i hasło.
@@ -25,6 +27,7 @@ Wykorzystanie biblioteki komponentów Shadcn/ui zapewnia spójność wizualną, 
   - **Bezpieczeństwo:** Hasło przesyłane bezpiecznie, brak przechowywania go w stanie aplikacji po wysłaniu.
 
 ### Widok: Logowanie
+
 - **Ścieżka:** `/login`
 - **Główny cel:** Umożliwienie istniejącym użytkownikom zalogowania się do aplikacji.
 - **Kluczowe informacje do wyświetlenia:** Formularz z polami na adres e-mail i hasło.
@@ -37,6 +40,7 @@ Wykorzystanie biblioteki komponentów Shadcn/ui zapewnia spójność wizualną, 
   - **Bezpieczeństwo:** Zabezpieczenie przed atakami typu brute-force (obsługiwane przez Supabase).
 
 ### Widok: Generowanie Fiszek
+
 - **Ścieżka:** `/generate`
 - **Główny cel:** Wprowadzenie tekstu źródłowego, wygenerowanie propozycji fiszek przez AI i zarządzanie kandydatami.
 - **Kluczowe informacje do wyświetlenia:**
@@ -57,6 +61,7 @@ Wykorzystanie biblioteki komponentów Shadcn/ui zapewnia spójność wizualną, 
   - **Bezpieczeństwo:** Akcje odrzucenia wymagają potwierdzenia, aby zapobiec przypadkowej utracie danych.
 
 ### Widok: Moje Fiszki
+
 - **Ścieżka:** `/flashcards`
 - **Główny cel:** Przeglądanie, edycja, usuwanie zaakceptowanych fiszek oraz ręczne tworzenie nowych.
 - **Kluczowe informacje do wyświetlenia:**
@@ -74,6 +79,7 @@ Wykorzystanie biblioteki komponentów Shadcn/ui zapewnia spójność wizualną, 
   - **Bezpieczeństwo:** Usunięcie fiszki wymaga potwierdzenia w modalu.
 
 ### Widok: Ustawienia
+
 - **Ścieżka:** `/settings`
 - **Główny cel:** Zarządzanie kontem użytkownika i ustawieniami aplikacji.
 - **Kluczowe informacje do wyświetlenia:**
@@ -122,6 +128,7 @@ Aplikacja wykorzystuje dwa główne układy (layouty):
 2.  **`ProtectedLayout.astro`**: Główny layout dla zalogowanych użytkowników, obejmujący widoki `/generate`, `/flashcards` i `/settings`. Zawiera on responsywny, stały pasek nawigacyjny.
 
 **Struktura nawigacji (`NavigationMenu`):**
+
 - **Logo aplikacji:** Zawsze widoczne, linkuje do `/generate`.
 - **Linki główne:**
   - "Generuj" (`/generate`)
@@ -142,4 +149,4 @@ Poniższe komponenty React (`.tsx`) będą reużywalne w całej aplikacji, aby z
 - **`ConfirmActionDialog`**: Generyczny modal (`AlertDialog`) do potwierdzania akcji destrukcyjnych (np. odrzucenie kandydata, usunięcie fiszki), aby zapobiec błędom użytkownika.
 - **`Skeleton`**: Komponenty szkieletowe naśladujące układ finalnych list i kart, używane podczas ładowania danych, aby zredukować odczuwalny czas oczekiwania (LCP).
 - **`ToastProvider` / `useToast`**: Globalny system powiadomień do informowania użytkownika o wynikach operacji asynchronicznych (sukces, błąd, informacja).
-- **`AppContextProvider` / `useAppContext`**: Globalny kontekst React do zarządzania stanem modali i innymi elementami globalnymi, co upraszcza komunikację między komponentami. 
+- **`AppContextProvider` / `useAppContext`**: Globalny kontekst React do zarządzania stanem modali i innymi elementami globalnymi, co upraszcza komunikację między komponentami.

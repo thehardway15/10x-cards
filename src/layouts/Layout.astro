@@ -21,27 +21,27 @@ const { title = "10x Astro Starter" } = Astro.props;
   <body>
     <slot />
     <Toaster position="bottom-right" client:load />
-    <script>
+    <script is:inline>
       // Global script to ensure all fetch requests include the auth token if available
       const originalFetch = window.fetch;
-      window.fetch = function(url, options = {}) {
+      window.fetch = function (url, options = {}) {
         // Clone the options to avoid modifying the original object
         const newOptions = { ...options };
-        
+
         // Initialize headers if not set
         newOptions.headers = newOptions.headers || {};
-        
+
         // Get the auth token from localStorage
-        const token = localStorage.getItem('auth_token');
-        
+        const token = localStorage.getItem("auth_token");
+
         // If token exists and Authorization header isn't already set, add it
-        if (token && !newOptions.headers['Authorization']) {
+        if (token && !newOptions.headers["Authorization"]) {
           newOptions.headers = {
             ...newOptions.headers,
-            'Authorization': `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
           };
         }
-        
+
         // Call the original fetch with the new options
         return originalFetch(url, newOptions);
       };

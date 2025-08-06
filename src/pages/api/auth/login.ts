@@ -1,11 +1,11 @@
-import type { APIRoute } from 'astro';
-import { createSupabaseServerInstance } from '../../../db/supabase.client';
-import { createToken } from '../../../lib/auth/jwt';
-import { z } from 'zod';
+import type { APIRoute } from "astro";
+import { createSupabaseServerInstance } from "../../../db/supabase.client";
+import { createToken } from "../../../lib/auth/jwt";
+import { z } from "zod";
 
 const loginSchema = z.object({
-  email: z.string().email('Invalid email format'),
-  password: z.string().min(1, 'Password is required'),
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(1, "Password is required"),
 });
 
 export const POST: APIRoute = async ({ request, cookies }) => {
@@ -13,7 +13,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const body = await request.json();
     const { email, password } = loginSchema.parse(body);
 
-    const supabase = createSupabaseServerInstance({ 
+    const supabase = createSupabaseServerInstance({
       headers: request.headers,
       cookies,
     });
@@ -24,49 +24,40 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     });
 
     if (error) {
-      return new Response(
-        JSON.stringify({ error: error.message }),
-        { 
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     // Generate JWT token
     const token = await createToken(data.user);
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         token,
         user: {
           id: data.user.id,
           email: data.user.email,
-          role: data.user.role || 'user',
-        }
+          role: data.user.role || "user",
+        },
       }),
-      { 
+      {
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { "Content-Type": "application/json" },
       }
     );
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return new Response(
-        JSON.stringify({ error: error.errors[0].message }),
-        { 
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
+      return new Response(JSON.stringify({ error: error.errors[0].message }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
-    return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { 
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 };

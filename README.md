@@ -25,12 +25,14 @@ FlashAI addresses the time-consuming and monotonous process of manually creating
 - **Activity Logging**: Comprehensive event logging for KPI measurement
 
 ### Success Metrics
+
 - ≥75% of AI-generated flashcards accepted by users
 - ≥75% of all created flashcards originate from AI generation
 
 ## Tech Stack
 
 ### Frontend
+
 - **Astro 5** - Fast, efficient web application framework with minimal JavaScript
 - **React 19** - Interactive components where needed
 - **TypeScript 5** - Static typing and improved IDE support
@@ -38,23 +40,27 @@ FlashAI addresses the time-consuming and monotonous process of manually creating
 - **Shadcn/ui** - Accessible React component library
 
 ### Backend
+
 - **Supabase** - Complete backend-as-a-service solution
   - PostgreSQL database
   - Built-in user authentication
   - Multi-language SDK support
 
 ### AI Integration
+
 - **Openrouter.ai** - Access to multiple AI models (OpenAI, Anthropic, Google)
   - Cost-effective model selection
   - Financial limit controls
 
 ### Testing
+
 - **Vitest** - Fast test runner for unit and integration tests
 - **React Testing Library** - Component testing without implementation details
 - **Playwright** - End-to-end testing across multiple browsers
 - **Mock Service Worker (MSW)** - API request mocking for tests
 
 ### Development & Deployment
+
 - **GitHub Actions** - CI/CD pipelines
 - **Docker** - Containerization for deployment
 - **Vercel** - Production hosting
@@ -62,6 +68,7 @@ FlashAI addresses the time-consuming and monotonous process of manually creating
 ## Getting Started Locally
 
 ### Prerequisites
+
 - Node.js 22.14.0 (check `.nvmrc` file)
 - npm or yarn package manager
 - Supabase account and project
@@ -70,12 +77,14 @@ FlashAI addresses the time-consuming and monotonous process of manually creating
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/thehardway15/10x-cards
    cd flashai
    ```
 
 2. **Install Node.js version**
+
    ```bash
    nvm use
    # or
@@ -83,6 +92,7 @@ FlashAI addresses the time-consuming and monotonous process of manually creating
    ```
 
 3. **Install dependencies**
+
    ```bash
    npm install
    # or
@@ -91,25 +101,28 @@ FlashAI addresses the time-consuming and monotonous process of manually creating
 
 4. **Environment Setup**
    Create a `.env` file in the root directory with:
+
    ```env
    # Supabase Configuration
    PUBLIC_SUPABASE_URL=your_supabase_url
    PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
    SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-   
+
    # AI Configuration
    OPENROUTER_API_KEY=your_openrouter_api_key
-   
+
    # Application Configuration
    PUBLIC_APP_URL=http://localhost:4321
    ```
 
 5. **Database Setup**
+
    - Set up your Supabase project
    - Create necessary tables for users, flashcards, and logging
    - Configure authentication settings
 
 6. **Start the development server**
+
    ```bash
    npm run dev
    ```
@@ -118,45 +131,52 @@ FlashAI addresses the time-consuming and monotonous process of manually creating
 
 ## Available Scripts
 
-| Script | Description |
-|--------|-------------|
-| `npm run dev` | Start development server with hot reload |
-| `npm run build` | Build the application for production |
-| `npm run preview` | Preview the production build locally |
-| `npm run astro` | Run Astro CLI commands |
-| `npm run lint` | Run ESLint to check code quality |
-| `npm run lint:fix` | Run ESLint and automatically fix issues |
-| `npm run format` | Format code using Prettier |
-| `npm run test` | Run unit and component tests with Vitest |
-| `npm run test:e2e` | Run end-to-end tests with Playwright |
+| Script             | Description                              |
+| ------------------ | ---------------------------------------- |
+| `npm run dev`      | Start development server with hot reload |
+| `npm run build`    | Build the application for production     |
+| `npm run preview`  | Preview the production build locally     |
+| `npm run astro`    | Run Astro CLI commands                   |
+| `npm run lint`     | Run ESLint to check code quality         |
+| `npm run lint:fix` | Run ESLint and automatically fix issues  |
+| `npm run format`   | Format code using Prettier               |
+| `npm run test`     | Run unit and component tests with Vitest |
+| `npm run test:e2e` | Run end-to-end tests with Playwright     |
 
 ## Project Scope
 
 ### Core Features
+
 ✅ **AI Flashcard Generation**
+
 - Text input validation (1,000-10,000 characters)
 - AI-powered candidate generation
 - Paginated candidate review (20 items per page)
 - Accept, edit, or reject workflow
 
 ✅ **Manual Flashcard Management**
+
 - Create, read, update, delete operations
 - Front/back field validation (≤200/≤500 characters)
 - User-specific flashcard collections
 
 ✅ **User Management**
+
 - Email/password registration and authentication
 - Password change functionality
 - Session management
 
 ✅ **System Features**
+
 - Error handling and retry logic for AI failures
 - Event logging for KPI measurement
 - Spaced repetition algorithm integration
 - Comprehensive test coverage (unit, integration, E2E)
 
 ### Explicit Limitations
+
 ❌ **Out of Scope**
+
 - Custom spaced repetition algorithms (e.g., SuperMemo, Anki)
 - File imports (.pdf, .docx, etc.)
 - Flashcard sharing between users
@@ -179,6 +199,7 @@ This project is currently in active development based on the Product Requirement
 - Thorough test coverage
 
 ### Development Priorities
+
 1. Core AI generation workflow
 2. User authentication system
 3. Flashcard management interface

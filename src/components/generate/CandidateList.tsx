@@ -1,8 +1,8 @@
-import { CandidateListItem } from './CandidateListItem';
-import { GenerationActions } from './GenerationActions';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Pagination } from '@/components/ui/pagination';
-import type { GenerationCandidateViewModel } from '@/lib/hooks/useGeneration';
+import { CandidateListItem } from "./CandidateListItem";
+import { GenerationActions } from "./GenerationActions";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Pagination } from "@/components/ui/pagination";
+import type { GenerationCandidateViewModel } from "@/lib/hooks/useGeneration";
 
 interface CandidateListProps {
   candidates: GenerationCandidateViewModel[];
@@ -33,7 +33,7 @@ export function CandidateList({
 }: CandidateListProps) {
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4" data-testid="candidate-list-loading">
         {Array.from({ length: 3 }).map((_, index) => (
           <div key={index} className="space-y-4">
             <Skeleton className="h-[200px] w-full rounded-lg" />
@@ -45,23 +45,17 @@ export function CandidateList({
 
   if (candidates.length === 0) {
     return (
-      <div className="text-center py-8">
-        <p className="text-muted-foreground">
-          No flashcard candidates available. Generate some flashcards first!
-        </p>
+      <div className="text-center py-8" data-testid="candidate-list-empty">
+        <p className="text-muted-foreground">No flashcard candidates available. Generate some flashcards first!</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <GenerationActions
-        candidates={candidates}
-        onBulkAccept={onBulkAccept}
-        isProcessing={isProcessing}
-      />
-      
-      <div className="space-y-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="space-y-6" data-testid="candidate-list">
+      <GenerationActions candidates={candidates} onBulkAccept={onBulkAccept} isProcessing={isProcessing} />
+
+      <div className="space-y-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" data-testid="candidate-grid">
         {candidates.map((candidate) => (
           <CandidateListItem
             key={candidate.candidateId}
@@ -72,7 +66,7 @@ export function CandidateList({
           />
         ))}
       </div>
-      
+
       {totalItems > pageSize && (
         <div className="flex justify-center">
           <Pagination
@@ -84,4 +78,4 @@ export function CandidateList({
       )}
     </div>
   );
-} 
+}

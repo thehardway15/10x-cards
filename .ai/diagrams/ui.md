@@ -101,36 +101,40 @@ Po utworzeniu diagramu, przejrzyj go dokładnie, aby upewnić się, że nie ma b
 Kiedy będziesz gotowy do przedstawienia końcowego diagramu, użyj tagów <mermaid_diagram> do jego otoczenia.
 
 <architecture_analysis>
+
 1.  **Wypisane Komponenty:**
-    *   **Strony (Astro):** `/login`, `/register`, `/account`, `/generate`.
-    *   **Komponenty (React):** `LoginForm.tsx`, `RegisterForm.tsx`, `ChangePasswordForm.tsx`.
-    *   **Layouty (Astro):** `Layout.astro`.
-    *   **API Endpoints:** `POST /api/auth/login`, `POST /api/auth/register`, `POST /api/auth/logout`, `POST /api/auth/password-change`.
-    *   **Logika Pośrednicząca (Middleware):** `src/middleware/index.ts`.
-    *   **Usługi:** Klient Supabase.
+
+    - **Strony (Astro):** `/login`, `/register`, `/account`, `/generate`.
+    - **Komponenty (React):** `LoginForm.tsx`, `RegisterForm.tsx`, `ChangePasswordForm.tsx`.
+    - **Layouty (Astro):** `Layout.astro`.
+    - **API Endpoints:** `POST /api/auth/login`, `POST /api/auth/register`, `POST /api/auth/logout`, `POST /api/auth/password-change`.
+    - **Logika Pośrednicząca (Middleware):** `src/middleware/index.ts`.
+    - **Usługi:** Klient Supabase.
 
 2.  **Główne Strony i Komponenty:**
-    *   Strona `/login` renderuje komponent `LoginForm.tsx`.
-    *   Strona `/register` renderuje komponent `RegisterForm.tsx`.
-    *   Strona `/account` (chroniona) renderuje `ChangePasswordForm.tsx`.
-    *   `Layout.astro` jest głównym layoutem aplikacji, wyświetlającym stan zalogowania (email użytkownika i przycisk wylogowania) lub link do logowania.
+
+    - Strona `/login` renderuje komponent `LoginForm.tsx`.
+    - Strona `/register` renderuje komponent `RegisterForm.tsx`.
+    - Strona `/account` (chroniona) renderuje `ChangePasswordForm.tsx`.
+    - `Layout.astro` jest głównym layoutem aplikacji, wyświetlającym stan zalogowania (email użytkownika i przycisk wylogowania) lub link do logowania.
 
 3.  **Przepływ Danych:**
-    *   Formularze (`LoginForm`, `RegisterForm`) wysyłają żądania POST do odpowiednich endpointów API.
-    *   Endpointy API (`/api/auth/*`) komunikują się z Supabase Auth w celu weryfikacji/utworzenia użytkownika.
-    *   Supabase zarządza sesją za pomocą ciasteczek (cookies).
-    *   `Middleware` przechwytuje żądania do chronionych stron (`/generate`, `/account`), weryfikuje sesję z Supabase i w razie braku autoryzacji przekierowuje na `/login`.
-    *   `Layout.astro` odczytuje dane o zalogowanym użytkowniku z `Astro.locals` (dostarczone przez middleware) i dynamicznie renderuje interfejs.
+
+    - Formularze (`LoginForm`, `RegisterForm`) wysyłają żądania POST do odpowiednich endpointów API.
+    - Endpointy API (`/api/auth/*`) komunikują się z Supabase Auth w celu weryfikacji/utworzenia użytkownika.
+    - Supabase zarządza sesją za pomocą ciasteczek (cookies).
+    - `Middleware` przechwytuje żądania do chronionych stron (`/generate`, `/account`), weryfikuje sesję z Supabase i w razie braku autoryzacji przekierowuje na `/login`.
+    - `Layout.astro` odczytuje dane o zalogowanym użytkowniku z `Astro.locals` (dostarczone przez middleware) i dynamicznie renderuje interfejs.
 
 4.  **Opis Funkcjonalności:**
-    *   `LoginForm.tsx`: Renderuje formularz logowania, waliduje dane i komunikuje się z API w celu zalogowania użytkownika.
-    *   `RegisterForm.tsx`: Renderuje formularz rejestracji, waliduje dane (w tym zgodność haseł) i komunikuje się z API w celu utworzenia konta.
-    *   `ChangePasswordForm.tsx`: Renderuje formularz zmiany hasła dla zalogowanego użytkownika.
-    *   `/api/auth/*`: Zestaw endpointów backendowych obsługujących logikę autentykacji (logowanie, rejestracja, wylogowanie, zmiana hasła).
-    *   `middleware`: Chroni trasy aplikacji, sprawdzając, czy użytkownik jest zalogowany.
-</architecture_analysis>
+    _ `LoginForm.tsx`: Renderuje formularz logowania, waliduje dane i komunikuje się z API w celu zalogowania użytkownika.
+    _ `RegisterForm.tsx`: Renderuje formularz rejestracji, waliduje dane (w tym zgodność haseł) i komunikuje się z API w celu utworzenia konta.
+    _ `ChangePasswordForm.tsx`: Renderuje formularz zmiany hasła dla zalogowanego użytkownika.
+    _ `/api/auth/*`: Zestaw endpointów backendowych obsługujących logikę autentykacji (logowanie, rejestracja, wylogowanie, zmiana hasła). \* `middleware`: Chroni trasy aplikacji, sprawdzając, czy użytkownik jest zalogowany.
+    </architecture_analysis>
 
 <mermaid_diagram>
+
 ```mermaid
 flowchart TD
     subgraph "Użytkownik Niezalogowany"
@@ -163,14 +167,14 @@ flowchart TD
         Middleware -- "Weryfikuje Żądanie" --> U_Zalogowany_Dostep["Dostęp do chronionej strony"]
         Middleware -- "Brak Sesji" --> PrzekierowanieDoLogowania["Przekierowanie na /login"]
     end
-    
+
     U_Gosc -- "Próba dostępu do /generate" --> Middleware
 
     subgraph "Użytkownik Zalogowany"
         U_Zalogowany["Użytkownik (Zalogowany)"]
         U_Zalogowany --> GlownyLayout["Layout.astro"]
     end
-    
+
     subgraph "Chronione Strony i Komponenty"
         direction TB
         U_Zalogowany_Dostep --> GlownyLayout
@@ -181,11 +185,11 @@ flowchart TD
         ChangePasswordForm -- "POST /api/auth/password-change" --> ApiPasswordChange
         PrzyciskWyloguj -- "POST /api/auth/logout" --> ApiLogout
     end
-    
+
     ApiLogout -- "Przekierowuje po wylogowaniu" --> StronaLogowania
     ApiLogin -- "Przekierowanie po sukcesie" --> StronaGenerate
     ApiRegister -- "Przekierowanie po sukcesie" --> StronaGenerate
-    
+
     classDef astroPage fill:#FF7E28,stroke:#000,stroke-width:2px;
     classDef reactComponent fill:#61DAFB,stroke:#000,stroke-width:2px;
     classDef apiEndpoint fill:#90ee90,stroke:#000,stroke-width:2px;
@@ -198,4 +202,5 @@ flowchart TD
     class Middleware middleware
     class SupabaseAuth supabase
 ```
-</mermaid_diagram> 
+
+</mermaid_diagram>

@@ -1,9 +1,9 @@
-import type { CreateGenerationCommand, GenerationCandidateDto, GenerationDetailDto } from '../../types';
-import type { SupabaseClient } from '../../db/supabase.client';
-import crypto from 'crypto';
-import { OpenRouterService } from './openrouter.service';
-import { openRouterFlashcardsArraySchema } from '../schemas/flashcard.schema';
-import { z } from 'zod';
+import type { CreateGenerationCommand, GenerationCandidateDto, GenerationDetailDto } from "../../types";
+import type { SupabaseClient } from "../../db/supabase.client";
+import crypto from "crypto";
+import { OpenRouterService } from "./openrouter.service";
+import { openRouterFlashcardsArraySchema } from "../schemas/flashcard.schema";
+import { z } from "zod";
 
 export interface GenerationResult {
   generation: GenerationDetailDto;
@@ -23,23 +23,18 @@ export class GenerationError extends Error {
     public details?: GenerationErrorDetails
   ) {
     super(message);
-    this.name = 'GenerationError';
+    this.name = "GenerationError";
   }
 }
 
 export class GenerationService {
-  private readonly MODEL = 'openai/gpt-4o-mini';
+  private readonly MODEL = "openai/gpt-4o-mini";
   private readonly openRouter: OpenRouterService;
 
-  constructor(
-    private readonly supabase: SupabaseClient
-  ) {
+  constructor(private readonly supabase: SupabaseClient) {
     const apiKey = import.meta.env.OPENROUTER_API_KEY;
     if (!apiKey) {
-      throw new GenerationError(
-        'OpenRouter API key is not configured',
-        'CONFIG_ERROR'
-      );
+      throw new GenerationError("OpenRouter API key is not configured", "CONFIG_ERROR");
     }
 
     this.openRouter = new OpenRouterService({ apiKey }, supabase);
@@ -51,11 +46,8 @@ export class GenerationService {
       const sanitizedText = this.sanitizeSourceText(command.sourceText);
 
       // Calculate source text hash and length
-      const sourceTextHash = crypto
-        .createHash('sha256')
-        .update(sanitizedText)
-        .digest('hex');
-      
+      const sourceTextHash = crypto.createHash("sha256").update(sanitizedText).digest("hex");
+
       const sourceTextLength = sanitizedText.length;
 
       // Create generation record
@@ -69,22 +61,18 @@ export class GenerationService {
         source_text_length: sourceTextLength,
         user_id: userId,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       };
 
       // Insert generation record
       const { data: generation, error: insertError } = await this.supabase
-        .from('generations')
+        .from("generations")
         .insert(generationData)
         .select()
         .single();
 
       if (insertError || !generation) {
-        throw new GenerationError(
-          'Failed to create generation record',
-          'DB_ERROR',
-          { error: insertError }
-        );
+        throw new GenerationError("Failed to create generation record", "DB_ERROR", { error: insertError });
       }
 
       // Generate flashcards using OpenRouter
@@ -97,53 +85,53 @@ Focus on the most important concepts and ensure the content is accurate.`,
         modelName: this.MODEL,
         modelParams: {
           temperature: 0.7,
-          max_tokens: 1000
+          max_tokens: 1000,
         },
         responseFormat: {
-          type: 'json_schema',
+          type: "json_schema",
           json_schema: {
-            name: 'flashcards',
+            name: "flashcards",
             strict: true,
             schema: {
-              type: 'object',
+              type: "object",
               properties: {
                 flashcards: {
-                  type: 'array',
+                  type: "array",
                   items: {
-                    type: 'object',
+                    type: "object",
                     properties: {
-                      front: { type: 'string', description: 'Question or concept on the front of the flashcard' },
-                      back: { type: 'string', description: 'Answer or explanation on the back of the flashcard' }
+                      front: { type: "string", description: "Question or concept on the front of the flashcard" },
+                      back: { type: "string", description: "Answer or explanation on the back of the flashcard" },
                     },
-                    required: ['front', 'back'],
-                    additionalProperties: false
-                  }
-                }
+                    required: ["front", "back"],
+                    additionalProperties: false,
+                  },
+                },
               },
-              required: ['flashcards'],
-              additionalProperties: false
-            }
-          }
+              required: ["flashcards"],
+              additionalProperties: false,
+            },
+          },
         },
         validationSchema: z.object({
-          flashcards: openRouterFlashcardsArraySchema
+          flashcards: openRouterFlashcardsArraySchema,
         }),
         sourceTextHash,
         sourceTextLength,
-        userId
+        userId,
       });
 
       // Update generation count
       await this.supabase
-        .from('generations')
+        .from("generations")
         .update({ generated_count: flashcards.flashcards.length })
-        .eq('id', generation.id);
+        .eq("id", generation.id);
 
       // Map flashcards to candidates
-      const candidates: GenerationCandidateDto[] = flashcards.flashcards.map(card => ({
+      const candidates: GenerationCandidateDto[] = flashcards.flashcards.map((card) => ({
         candidateId: crypto.randomUUID(),
         front: card.front,
-        back: card.back
+        back: card.back,
       }));
 
       // Map generation to DTO
@@ -155,12 +143,12 @@ Focus on the most important concepts and ensure the content is accurate.`,
         acceptedEditedCount: generation.accepted_edited_count,
         sourceTextHash: generation.source_text_hash,
         sourceTextLength: generation.source_text_length,
-        createdAt: generation.created_at
+        createdAt: generation.created_at,
       };
 
       return {
         generation: generationDto,
-        candidates
+        candidates,
       };
     } catch (error) {
       if (error instanceof GenerationError) {
@@ -168,44 +156,41 @@ Focus on the most important concepts and ensure the content is accurate.`,
         throw error;
       }
 
-      const wrappedError = new GenerationError(
-        'Unexpected error during generation',
-        'INTERNAL_ERROR',
-        { error }
-      );
+      const wrappedError = new GenerationError("Unexpected error during generation", "INTERNAL_ERROR", { error });
       await this.logError(wrappedError, this.MODEL, userId);
       throw wrappedError;
     }
   }
 
   private sanitizeSourceText(text: string): string {
-    return text
-      // Normalize whitespace
-      .replace(/\s+/g, ' ')
-      // Normalize newlines
-      .replace(/\n{3,}/g, '\n\n')
-      // Remove leading/trailing whitespace
-      .trim()
-      // Remove zero-width spaces and other invisible characters
-      .replace(/[\u200B-\u200D\uFEFF]/g, '')
-      // Remove control characters except newlines
-      .replace(/[\x00-\x09\x0B-\x1F\x7F-\x9F]/g, '');
+    return (
+      text
+        // Normalize whitespace
+        .replace(/\s+/g, " ")
+        // Normalize newlines
+        .replace(/\n{3,}/g, "\n\n")
+        // Remove leading/trailing whitespace
+        .trim()
+        // Remove zero-width spaces and other invisible characters
+        .replace(/[\u200B-\u200D\uFEFF]/g, "")
+        // Remove control characters except newlines
+        // eslint-disable-next-line no-control-regex
+        .replace(/[\x00-\x09\x0B-\x1F\x7F-\x9F]/g, "")
+    );
   }
 
   private async logError(error: GenerationError, model: string, userId: string): Promise<void> {
     try {
-      await this.supabase
-        .from('generation_error_logs')
-        .insert({
-          model,
-          error_code: error.code,
-          error_message: error.message,
-          source_text_hash: error.details?.sourceTextHash || '',
-          source_text_length: error.details?.sourceTextLength || 0,
-          user_id: userId
-        });
+      await this.supabase.from("generation_error_logs").insert({
+        model,
+        error_code: error.code,
+        error_message: error.message,
+        source_text_hash: error.details?.sourceTextHash || "",
+        source_text_length: error.details?.sourceTextLength || 0,
+        user_id: userId,
+      });
     } catch (e) {
-      console.error('Failed to log generation error:', e);
+      console.error("Failed to log generation error:", e);
     }
   }
-} 
+}

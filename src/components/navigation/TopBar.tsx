@@ -1,35 +1,25 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { apiClient, getUser, clearAuth } from '@/lib/api.utils';
-
-interface User {
-  email: string;
-}
-
-interface MeResponse {
-  user?: {
-    email: string;
-  };
-}
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { apiClient, getUser, clearAuth } from "@/lib/api.utils";
 
 export function TopBar() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userEmail, setUserEmail] = useState('');
+  const [userEmail, setUserEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     // Check authentication status on mount using localStorage only
     // to avoid redirection loops with the /api/auth/me endpoint
     const user = getUser();
-    const token = localStorage.getItem('auth_token');
-    
-    if (user && token) {
+    const token = localStorage.getItem("auth_token");
+
+    if (user && token && typeof user === "object" && "email" in user) {
       setIsAuthenticated(true);
-      setUserEmail(user.email);
+      setUserEmail((user as { email: string }).email);
     } else {
       setIsAuthenticated(false);
-      setUserEmail('');
+      setUserEmail("");
       clearAuth();
     }
   }, []);
@@ -37,15 +27,15 @@ export function TopBar() {
   const handleLogout = async () => {
     setIsLoading(true);
     try {
-      await apiClient.post('/api/auth/logout', {});
-      
+      await apiClient.post("/api/auth/logout", {});
+
       // Clear local auth data
       clearAuth();
 
       // Redirect to login page
-      window.location.href = '/login';
-    } catch (error) {
-      toast.error('Failed to sign out');
+      window.location.href = "/login";
+    } catch {
+      toast.error("Failed to sign out");
     } finally {
       setIsLoading(false);
     }
@@ -58,21 +48,14 @@ export function TopBar() {
           <a href="/" className="mr-6 flex items-center space-x-2">
             <span className="font-bold">FlashAI</span>
           </a>
-          
+
           {/* Show navigation links only for authenticated users */}
           {isAuthenticated && (
             <nav className="flex items-center space-x-6 text-sm font-medium">
-              <a
-                href="/generate"
-                className="transition-colors hover:text-foreground/80"
-              >
+              <a href="/generate" className="transition-colors hover:text-foreground/80">
                 Generate
               </a>
-              <a
-                href="/account"
-                className="transition-colors hover:text-foreground/80"
-                data-testid="profile-link"
-              >
+              <a href="/account" className="transition-colors hover:text-foreground/80" data-testid="profile-link">
                 Account
               </a>
             </nav>
@@ -83,12 +66,8 @@ export function TopBar() {
           {isAuthenticated ? (
             <div className="flex items-center space-x-4" data-testid="user-menu">
               <span className="text-sm text-muted-foreground">{userEmail}</span>
-              <Button
-                variant="outline"
-                onClick={handleLogout}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Signing out...' : 'Sign out'}
+              <Button variant="outline" onClick={handleLogout} disabled={isLoading}>
+                {isLoading ? "Signing out..." : "Sign out"}
               </Button>
             </div>
           ) : (

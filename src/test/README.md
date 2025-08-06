@@ -28,29 +28,29 @@ Follow these best practices:
 Example:
 
 ```tsx
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { MyComponent } from './MyComponent';
+import { describe, it, expect } from "vitest";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { MyComponent } from "./MyComponent";
 
-describe('MyComponent', () => {
-  it('should render correctly', () => {
+describe("MyComponent", () => {
+  it("should render correctly", () => {
     // Arrange
     render(<MyComponent />);
-    
+
     // Assert
-    expect(screen.getByText('Hello World')).toBeInTheDocument();
+    expect(screen.getByText("Hello World")).toBeInTheDocument();
   });
-  
-  it('should handle click events', async () => {
+
+  it("should handle click events", async () => {
     // Arrange
     const onClickMock = vi.fn();
     render(<MyComponent onClick={onClickMock} />);
-    
+
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByRole('button'));
-    
+    await user.click(screen.getByRole("button"));
+
     // Assert
     expect(onClickMock).toHaveBeenCalledTimes(1);
   });
@@ -82,22 +82,22 @@ Follow these best practices:
 Example:
 
 ```ts
-import { test, expect } from '@playwright/test';
-import { LoginPage } from './page-objects/LoginPage';
-import { DashboardPage } from './page-objects/DashboardPage';
+import { test, expect } from "@playwright/test";
+import { LoginPage } from "./page-objects/LoginPage";
+import { DashboardPage } from "./page-objects/DashboardPage";
 
-test.describe('User authentication', () => {
-  test('should login successfully with valid credentials', async ({ page }) => {
+test.describe("User authentication", () => {
+  test("should login successfully with valid credentials", async ({ page }) => {
     // Arrange
     const loginPage = new LoginPage(page);
     await loginPage.goto();
-    
+
     // Act
-    await loginPage.login('testuser@example.com', 'password123');
-    
+    await loginPage.login("testuser@example.com", "password123");
+
     // Assert
     const dashboardPage = new DashboardPage(page);
-    await dashboardPage.expectUserLoggedIn('testuser');
+    await dashboardPage.expectUserLoggedIn("testuser");
   });
 });
-``` 
+```

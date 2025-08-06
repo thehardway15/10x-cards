@@ -1,40 +1,40 @@
-import type { Tables, Enums } from './db/database.types';
-import { z } from 'zod';
+import type { Tables, Enums } from "./db/database.types";
+import { z } from "zod";
 
 // Flashcard Source enumeration
-export type FlashcardSource = Enums<'flashcard_source'>;
+export type FlashcardSource = Enums<"flashcard_source">;
 
 // Common pagination and sorting options
 export interface PaginationOptions {
   page?: number;
   pageSize?: number;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 }
 
 // #### Generation DTOs and Commands
 
 // Summary view of a generation session
 export interface GenerationSummaryDto {
-  id: Tables<'generations'>['id'];
-  model: Tables<'generations'>['model'];
-  generatedCount: Tables<'generations'>['generated_count'];
-  acceptedUneditedCount: Tables<'generations'>['accepted_unedited_count'];
-  acceptedEditedCount: Tables<'generations'>['accepted_edited_count'];
-  createdAt: Tables<'generations'>['created_at'];
+  id: Tables<"generations">["id"];
+  model: Tables<"generations">["model"];
+  generatedCount: Tables<"generations">["generated_count"];
+  acceptedUneditedCount: Tables<"generations">["accepted_unedited_count"];
+  acceptedEditedCount: Tables<"generations">["accepted_edited_count"];
+  createdAt: Tables<"generations">["created_at"];
 }
 
 // Detailed view including source text metadata
 export interface GenerationDetailDto extends GenerationSummaryDto {
-  sourceTextHash: Tables<'generations'>['source_text_hash'];
-  sourceTextLength: Tables<'generations'>['source_text_length'];
+  sourceTextHash: Tables<"generations">["source_text_hash"];
+  sourceTextLength: Tables<"generations">["source_text_length"];
 }
 
 // Candidate for flashcard generation
 export interface GenerationCandidateDto {
   candidateId: string; // ephemeral identifier for the candidate
-  front: Tables<'flashcards'>['front'];
-  back: Tables<'flashcards'>['back'];
+  front: Tables<"flashcards">["front"];
+  back: Tables<"flashcards">["back"];
 }
 
 // Command to create a new generation session
@@ -52,7 +52,7 @@ export interface CreateGenerationResponseDto {
 export type RetryGenerationResponseDto = CreateGenerationResponseDto;
 
 // Query parameters for listing generation sessions
-export interface ListGenerationsQueryDto extends PaginationOptions {}
+export type ListGenerationsQueryDto = PaginationOptions;
 
 // Response for listing generation sessions
 export interface ListGenerationsResponseDto {
@@ -69,20 +69,20 @@ export type GetGenerationResponseDto = GenerationSummaryDto;
 
 // Basic flashcard view
 export interface FlashcardDto {
-  id: Tables<'flashcards'>['id'];
-  front: Tables<'flashcards'>['front'];
-  back: Tables<'flashcards'>['back'];
+  id: Tables<"flashcards">["id"];
+  front: Tables<"flashcards">["front"];
+  back: Tables<"flashcards">["back"];
   source: FlashcardSource;
-  createdAt: Tables<'flashcards'>['created_at'];
+  createdAt: Tables<"flashcards">["created_at"];
 }
 
 // Detailed flashcard view including update timestamp
 export interface DetailedFlashcardDto extends FlashcardDto {
-  updatedAt: Tables<'flashcards'>['updated_at'];
+  updatedAt: Tables<"flashcards">["updated_at"];
 }
 
 // Query parameters for listing flashcards
-export interface ListFlashcardsQueryDto extends PaginationOptions {}
+export type ListFlashcardsQueryDto = PaginationOptions;
 
 // Response for listing flashcards
 export interface ListFlashcardsResponseDto {
@@ -97,10 +97,10 @@ export type GetFlashcardResponseDto = DetailedFlashcardDto;
 
 // Command to create a flashcard (manual or accepting AI candidate)
 export interface CreateFlashcardCommand {
-  front: Tables<'flashcards'>['front'];
-  back: Tables<'flashcards'>['back'];
+  front: Tables<"flashcards">["front"];
+  back: Tables<"flashcards">["back"];
   source: FlashcardSource;
-  generationId?: Tables<'flashcards'>['generation_id']; // required if source != 'manual'
+  generationId?: Tables<"flashcards">["generation_id"]; // required if source != 'manual'
 }
 
 // Command to create multiple flashcards in bulk
@@ -113,8 +113,8 @@ export interface BulkCreateFlashcardsResponseDto {
 
 // Command to update an existing flashcard
 export interface UpdateFlashcardCommand {
-  front: Tables<'flashcards'>['front'];
-  back: Tables<'flashcards'>['back'];
+  front: Tables<"flashcards">["front"];
+  back: Tables<"flashcards">["back"];
 }
 
 // Response after updating a flashcard
@@ -126,15 +126,15 @@ export interface UpdateFlashcardResponseDto {
 
 // Representation of an AI generation error log entry
 export interface GenerationErrorLogDto {
-  id: Tables<'generation_error_logs'>['id'];
-  model: Tables<'generation_error_logs'>['model'];
-  errorCode: Tables<'generation_error_logs'>['error_code'];
-  errorMessage: Tables<'generation_error_logs'>['error_message'];
-  createdAt: Tables<'generation_error_logs'>['created_at'];
+  id: Tables<"generation_error_logs">["id"];
+  model: Tables<"generation_error_logs">["model"];
+  errorCode: Tables<"generation_error_logs">["error_code"];
+  errorMessage: Tables<"generation_error_logs">["error_message"];
+  createdAt: Tables<"generation_error_logs">["created_at"];
 }
 
 // Query parameters for listing error logs
-export interface ListGenerationErrorLogsQueryDto extends PaginationOptions {}
+export type ListGenerationErrorLogsQueryDto = PaginationOptions;
 
 // Response for listing generation error logs
 export interface ListGenerationErrorLogsResponseDto {
@@ -164,7 +164,7 @@ export interface OpenRouterServiceMessageOptions<T> {
   modelName?: string;
   modelParams?: { temperature?: number; max_tokens?: number; [key: string]: unknown };
   responseFormat?: {
-    type: 'json_schema';
+    type: "json_schema";
     json_schema: {
       name: string;
       strict: boolean;
@@ -178,7 +178,7 @@ export interface OpenRouterServiceMessageOptions<T> {
 }
 
 export interface OpenRouterMessage {
-  role: 'system' | 'user' | 'assistant';
+  role: "system" | "user" | "assistant";
   content: string;
 }
 
@@ -189,7 +189,7 @@ export interface OpenRouterJsonSchema {
 }
 
 export interface OpenRouterResponseFormat {
-  type: 'json_schema';
+  type: "json_schema";
   json_schema: OpenRouterJsonSchema;
 }
 
@@ -207,10 +207,10 @@ export interface OpenRouterRequest {
 export interface OpenRouterResponse {
   id: string;
   model: string;
-  choices: Array<{
+  choices: {
     message: OpenRouterMessage;
     finish_reason: string;
-  }>;
+  }[];
   usage: {
     prompt_tokens: number;
     completion_tokens: number;
@@ -223,4 +223,4 @@ export interface OpenRouterServiceOptions {
   endpoint?: string;
   defaultModel?: string;
   defaultParams?: Record<string, unknown>;
-} 
+}

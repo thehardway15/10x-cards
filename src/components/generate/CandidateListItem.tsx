@@ -1,7 +1,7 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Loader2, Check, X, Pencil } from 'lucide-react';
-import type { GenerationCandidateViewModel } from '@/lib/hooks/useGeneration';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Loader2, Check, X, Pencil } from "lucide-react";
+import type { GenerationCandidateViewModel } from "@/lib/hooks/useGeneration";
 
 interface CandidateListItemProps {
   candidate: GenerationCandidateViewModel;
@@ -10,14 +10,9 @@ interface CandidateListItemProps {
   onReject: (candidateId: string) => void;
 }
 
-export function CandidateListItem({
-  candidate,
-  onAccept,
-  onEdit,
-  onReject,
-}: CandidateListItemProps) {
-  const isSaving = candidate.status === 'saving';
-  const isDeleting = candidate.status === 'deleting';
+export function CandidateListItem({ candidate, onAccept, onEdit, onReject }: CandidateListItemProps) {
+  const isSaving = candidate.status === "saving";
+  const isDeleting = candidate.status === "deleting";
   const isProcessing = isSaving || isDeleting;
 
   return (
@@ -35,49 +30,24 @@ export function CandidateListItem({
         </div>
       </CardContent>
       <CardFooter className="flex justify-end gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onReject(candidate.candidateId)}
-          disabled={isProcessing}
-        >
-          {isDeleting ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <X className="h-4 w-4" />
-          )}
+        <Button variant="outline" size="sm" onClick={() => onReject(candidate.candidateId)} disabled={isProcessing}>
+          {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
           <span className="ml-2">Reject</span>
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onEdit(candidate.candidateId)}
-          disabled={isProcessing}
-        >
+        <Button variant="outline" size="sm" onClick={() => onEdit(candidate.candidateId)} disabled={isProcessing}>
           <Pencil className="h-4 w-4" />
           <span className="ml-2">Edit</span>
         </Button>
-        <Button
-          variant="default"
-          size="sm"
-          onClick={() => onAccept(candidate.candidateId)}
-          disabled={isProcessing}
-        >
-          {isSaving ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Check className="h-4 w-4" />
-          )}
+        <Button variant="default" size="sm" onClick={() => onAccept(candidate.candidateId)} disabled={isProcessing}>
+          {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
           <span className="ml-2">Accept</span>
         </Button>
       </CardFooter>
-      {candidate.source === 'ai-edited' && (
+      {candidate.source === "ai-edited" && (
         <div className="absolute top-2 right-2">
-          <span className="text-xs bg-muted px-2 py-1 rounded-full">
-            Edited
-          </span>
+          <span className="text-xs bg-muted px-2 py-1 rounded-full">Edited</span>
         </div>
       )}
     </Card>
   );
-} 
+}
