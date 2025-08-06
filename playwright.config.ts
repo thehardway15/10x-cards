@@ -35,4 +35,12 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },
+  // Configure snapshots to use consistent naming across platforms
+  expect: {
+    toHaveScreenshot: {
+      threshold: 0.2,
+      // Use consistent naming without platform/browser suffixes
+      pathTemplate: '{testDir}/{testFileDir}/{testFileName}-snapshots/{arg}{ext}',
+    },
+  },
 });
