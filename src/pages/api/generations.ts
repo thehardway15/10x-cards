@@ -1,8 +1,19 @@
 import type { APIRoute } from "astro";
 import { z } from "zod";
+import { GenerationService } from "../../lib/services/generation.service";
+import type { User } from "@supabase/supabase-js";
+import type { createSupabaseServerInstance } from "../../db/supabase.client";
+
+interface Locals {
+  supabase: ReturnType<typeof createSupabaseServerInstance> | null;
+  user: User | null;
+}
 
 const generationRequestSchema = z.object({
-  sourceText: z.string().min(1, "Source text is required"),
+  sourceText: z
+    .string()
+    .min(1000, "Text must be at least 1,000 characters")
+    .max(10000, "Text must not exceed 10,000 characters"),
   options: z
     .object({
       language: z.string().optional(),
@@ -14,7 +25,7 @@ const generationRequestSchema = z.object({
 
 export const POST: APIRoute = async ({ request, locals }) => {
   try {
-    const user = locals.user;
+    const user = (locals as Locals).user;
     if (!user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
@@ -23,41 +34,38 @@ export const POST: APIRoute = async ({ request, locals }) => {
     }
 
     const body = await request.json();
-    const { sourceText, options } = generationRequestSchema.parse(body);
+    console.log("Received generation request:", { body, userId: user.id });
 
-    const { supabase } = locals;
+    const { sourceText } = generationRequestSchema.parse(body);
 
-    // Create generation record
-    const { data: generation, error: generationError } = await supabase
-      .from("generations")
-      .insert({
-        user_id: user.id,
-        source_text: sourceText,
-        options,
-        status: "pending",
-      })
-      .select()
-      .single();
-
-    if (generationError) {
-      throw generationError;
+    const { supabase } = locals as Locals;
+    if (!supabase) {
+      return new Response(JSON.stringify({ error: "Supabase client not available" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
-    // Start generation process (implementation depends on your setup)
-    // ...
+    // Create generation service and generate flashcards
+    const generationService = new GenerationService(supabase);
+    const result = await generationService.createGeneration({ sourceText }, user.id);
 
-    return new Response(JSON.stringify({ generation }), {
+    return new Response(JSON.stringify(result), {
       status: 201,
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
+    console.error("Generation API error:", error);
+
     if (error instanceof z.ZodError) {
+      console.error("Validation error:", error.errors);
       return new Response(JSON.stringify({ error: error.errors[0].message }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
     }
 
+    console.error("Generation error:", error);
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
@@ -67,7 +75,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
 export const GET: APIRoute = async ({ locals }) => {
   try {
-    const user = locals.user;
+    const user = (locals as Locals).user;
     if (!user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
@@ -75,7 +83,14 @@ export const GET: APIRoute = async ({ locals }) => {
       });
     }
 
-    const { supabase } = locals;
+    const { supabase } = locals as Locals;
+    if (!supabase) {
+      return new Response(JSON.stringify({ error: "Supabase client not available" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     const { data: generations, error } = await supabase
       .from("generations")
       .select("*")

@@ -18,6 +18,13 @@ export const GET: APIRoute = async ({ locals }) => {
     }
 
     const { supabase } = locals;
+    if (!supabase) {
+      return new Response(JSON.stringify({ error: "Supabase client not available" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     const { data: flashcards, error } = await supabase.from("flashcards").select("*").eq("user_id", user.id);
 
     if (error) {
@@ -50,6 +57,13 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const flashcard = flashcardSchema.parse(body);
 
     const { supabase } = locals;
+    if (!supabase) {
+      return new Response(JSON.stringify({ error: "Supabase client not available" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     const { data, error } = await supabase
       .from("flashcards")
       .insert({

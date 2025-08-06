@@ -18,6 +18,13 @@ export const GET: APIRoute = async ({ params, locals }) => {
     }
 
     const { supabase } = locals;
+    if (!supabase) {
+      return new Response(JSON.stringify({ error: "Supabase client not available" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     const { data: flashcard, error } = await supabase
       .from("flashcards")
       .select("*")
@@ -58,6 +65,13 @@ export const PUT: APIRoute = async ({ request, params, locals }) => {
     const flashcard = flashcardUpdateSchema.parse(body);
 
     const { supabase } = locals;
+    if (!supabase) {
+      return new Response(JSON.stringify({ error: "Supabase client not available" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     const { data, error } = await supabase
       .from("flashcards")
       .update(flashcard)
@@ -103,6 +117,13 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
     }
 
     const { supabase } = locals;
+    if (!supabase) {
+      return new Response(JSON.stringify({ error: "Supabase client not available" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     const { error } = await supabase.from("flashcards").delete().eq("id", params.id).eq("user_id", user.id);
 
     if (error) {

@@ -2,21 +2,31 @@ import type { APIRoute } from "astro";
 import { createSupabaseServerInstance } from "../../../db/supabase.client";
 import { createToken } from "../../../lib/auth/jwt";
 import { z } from "zod";
+import type { User } from "@supabase/supabase-js";
+import type { createSupabaseServerInstance as CreateSupabaseServerInstance } from "../../../db/supabase.client";
+
+interface Locals {
+  supabase: ReturnType<typeof CreateSupabaseServerInstance> | null;
+  user: User | null;
+}
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email format"),
   password: z.string().min(1, "Password is required"),
 });
 
-export const POST: APIRoute = async ({ request, cookies }) => {
+export const POST: APIRoute = async ({ request, cookies, locals }) => {
   try {
     const body = await request.json();
     const { email, password } = loginSchema.parse(body);
 
-    const supabase = createSupabaseServerInstance({
-      headers: request.headers,
-      cookies,
-    });
+    // Use Supabase instance from locals if available, otherwise create new one
+    const supabase =
+      (locals as Locals).supabase ||
+      createSupabaseServerInstance({
+        headers: request.headers,
+        cookies,
+      });
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,

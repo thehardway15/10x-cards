@@ -1,6 +1,13 @@
 import type { APIRoute } from "astro";
 import { createSupabaseServerInstance } from "../../../db/supabase.client";
 import { z } from "zod";
+import type { User } from "@supabase/supabase-js";
+import type { createSupabaseServerInstance as CreateSupabaseServerInstance } from "../../../db/supabase.client";
+
+interface Locals {
+  supabase: ReturnType<typeof CreateSupabaseServerInstance> | null;
+  user: User | null;
+}
 
 const registerSchema = z.object({
   email: z.string().email("Invalid email format"),
@@ -11,12 +18,18 @@ const registerSchema = z.object({
     .regex(/[0-9]/, "Password must contain at least one number"),
 });
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, cookies, locals }) => {
   try {
     const body = await request.json();
     const { email, password } = registerSchema.parse(body);
 
-    const supabase = createSupabaseServerInstance({ headers: request.headers });
+    // Use Supabase instance from locals if available, otherwise create new one
+    const supabase =
+      (locals as Locals).supabase ||
+      createSupabaseServerInstance({
+        headers: request.headers,
+        cookies,
+      });
 
     const { data, error } = await supabase.auth.signUp({
       email,

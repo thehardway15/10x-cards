@@ -34,6 +34,7 @@ export class GenerationService {
   constructor(private readonly supabase: SupabaseClient) {
     const apiKey = import.meta.env.OPENROUTER_API_KEY;
     if (!apiKey) {
+      console.error("OpenRouter API key is not configured. Please set OPENROUTER_API_KEY environment variable.");
       throw new GenerationError("OpenRouter API key is not configured", "CONFIG_ERROR");
     }
 
